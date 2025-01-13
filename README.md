@@ -1,0 +1,23 @@
+Code and data for the delegated inter-temporal choice task, accompanying the manuscript:
+
+Zhilin Su\*, Mona M. Garvert, Lei Zhang, Todd A. Vogel, Jo Cutler, Masud Husain, Sanjay Manohar, & Patricia L. Lockwood\*. (*under revision*). **Dorsomedial and ventromedial prefrontal cortex lesions differentially impact social influence and temporal impulsivity**.
+
+This repository contains:
+
+```
+root
+  ├─ data     # behavioural data and plots 
+       ├─ plots 
+       ├─ stanfit # stanfit objects
+  ├─ scripts  # R and Stan code to run the analyses and produce figures
+       ├─ helper_functions 
+       ├─ stan_model 
+```
+
+# Installation
+
+All behavioural analyses were performed using R (v4.2.1) in RStudio (v2023.06.2). Installation guides can be found at <https://posit.co/download/rstudio-desktop/>.
+
+Model fitting was performed using Stan (v2.32) and the RStan (v2.21.7) package in RStudio. Installation guides can be found at <https://mc-stan.org/users/interfaces/>.
+
+All these installations should only take a few minutes to complete.
