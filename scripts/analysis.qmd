@@ -162,3 +162,5 @@ if (is_save == 1) {
 ## Lesion controls
 
 17 lesion controls (`Group SD mPFC` label = 4) were recruited.
+
+# Data pre-processing 
