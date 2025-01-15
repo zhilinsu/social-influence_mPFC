@@ -164,3 +164,181 @@ if (is_save == 1) {
 17 lesion controls (`Group SD mPFC` label = 4) were recruited.
 
 # Data pre-processing 
+
+```{r}
+#| label: preprocessing_1 
+#| echo: false 
+#| warning: false 
+
+# ~~~~ TASK DATA ~~~~ ---- 
+# Load data ---- 
+load("data/sd_data_mpfc.RData")
+
+sd_data <- abind::abind(sd_hc, sd_mpfc, sd_lc, along = 3)
+other_k <- rbind(k_hc, k_mpfc, k_lc)
+
+rm(sd_hc, sd_mpfc, sd_lc, k_hc, k_mpfc, k_lc)
+
+# Convert data type 
+other_k <- other_k %>%
+	as_tibble() %>%
+	mutate(id = as.numeric(id), 
+				 other1_k = as.numeric(other1_k), 
+				 other2_k = as.numeric(other2_k), 
+				 other1_pref = as.factor(other1_pref), 
+				 other2_pref = as.factor(other2_pref)) %>%
+	# Pre-process the order of others 
+	mutate(other_i_k = if_else(other1_pref == "i", other1_k, other2_k), 
+				 other_p_k = if_else(other1_pref == "p", other1_k, other2_k))
+
+# Exclude participants ---- 
+incl_id_hc <- readRDS("behaviour/processed-data/incl_id_hc.rds")
+incl_id_mpfc <- readRDS("behaviour/processed-data/incl_id_mpfc.rds")
+incl_id_lc <- readRDS("behaviour/processed-data/incl_id_lc.rds")
+incl_id <- c(incl_id_hc, incl_id_mpfc, incl_id_lc)
+
+incl_condition <- sd_data[1, "id", ] %in% incl_id 
+sd_data <- sd_data[,, incl_condition]
+other_k <- other_k %>% 
+	filter(id %in% incl_id)
+
+# Extract metadata ---- 
+## dim(sd_data) = [# trials, # experimental parameters, # participants]
+n_trials <- dim(sd_data)[1]
+n_pt <- dim(sd_data)[3]
+
+# Reshape data ---- 
+## Extract the ID ---- 
+id_vec <- vector("numeric", length = n_pt)
+id_vec <- sd_data[1, "id", 1:n_pt]
+names(id_vec) <- NULL
+
+## Initialise a 3D array ---- 
+sd_data_new <- array(0, dim = dim(sd_data))
+col_names <- c("id", "s_dec_1", "s_rs_1", "s_rl_1", "s_dl_1", 
+							 "so_dec_i", "o_rs_i", "o_rl_i", "o_dl_i", "o_dec_i", 
+							 "s_dec_i", "s_rs_i", "s_rl_i", "s_dl_i", 
+							 "so_dec_p", "o_rs_p", "o_rl_p", "o_dl_p", "o_dec_p", 
+							 "s_dec_p", "s_rs_p", "s_rl_p", "s_dl_p")
+colnames(sd_data_new) <- col_names
+
+## Reshape data ---- 
+for (i in 1:n_pt) {
+	
+	other1_pref <- other_k$other1_pref[i]
+	
+	if (other1_pref == "i") {
+		sd_data_new[, 1:5, i] <- sd_data[, 1:5, i] # from id to s_dl_1
+		sd_data_new[, 6:14, i] <- sd_data[, 6:14, i] # from so_dec_i to s_dl_i 
+		sd_data_new[, 15:23, i] <- sd_data[, 15:23, i] # from so_dec_p to s_dl_p 
+	} else if (other1_pref == "p") {
+		sd_data_new[, 1:5, i] <- sd_data[, 1:5, i] # from id to s_dl_1 
+		sd_data_new[, 6:14, i] <- sd_data[, 15:23, i] # from so_dec_i to s_dl_i 
+		sd_data_new[, 15:23, i] <- sd_data[, 6:14, i] # from so_dec_p to s_dl_p 
+	}
+}
+
+# Calculate accuracy ---- 
+## Initialise a tibble to store results ---- 
+col_names <- c("id", "acc_i", "acc_p")
+acc_mat <- matrix(nrow = n_pt, ncol = length(col_names))
+colnames(acc_mat) <- col_names
+acc_tb <- as_tibble(acc_mat)
+acc_tb$id <- id_vec
+
+rm(acc_mat)
+
+## Initialise arrays ---- 
+self_decision <- array(0, dim = c(n_pt, n_trials)) 
+reward_sooner <- array(0, dim = c(n_pt, n_trials))
+reward_later <- array(0, dim = c(n_pt, n_trials))
+delay_later <- array(0, dim = c(n_pt, n_trials))
+
+value_later <- array(0, dim = c(n_pt, n_trials)) # subjective value of later offer
+model_choice <- array(0, dim = c(n_pt, n_trials)) 
+
+for (o_block in c("i", "p")) {
+	
+	other_k_vec <- other_k[, paste0("other_", o_block, "_k")]
+	
+	for (i_id in 1:n_pt) {
+		self_decision[i_id, ] <- sd_data_new[, paste0("so_dec_", o_block), i_id] 
+		reward_sooner[i_id, ] <- sd_data_new[, paste0("o_rs_", o_block), i_id]
+		reward_later[i_id, ] <- sd_data_new[, paste0("o_rl_", o_block), i_id]
+		delay_later[i_id, ] <- sd_data_new[, paste0("o_dl_", o_block), i_id] 
+		
+		k_value <- as.numeric(10^(other_k_vec[i_id, 1]))
+			
+		value_later[i_id, ] <- reward_later[i_id, ] / (1 + k_value * delay_later[i_id, ])
+		
+		model_choice[i_id, ] <- (value_later[i_id, ] > reward_sooner[i_id, ]) + 1
+		
+		acc <- mean(self_decision[i_id, ] == model_choice[i_id, ])
+		acc_tb[i_id, paste0("acc_", o_block)] <- acc
+	}
+}
+
+# ~~~~ DEMOGRAPHICS ~~~~ ---- 
+demogr <- read_csv("data/demographics/All_participants_data_index.csv") %>%
+	rename(id = ID_Code, group = `Group SD mPFC`, age = Age, gender = Gender) %>% 
+	dplyr::select(id, group, age, gender) %>%
+	mutate(id = if_else(id == 2012, 299, id)) %>% 
+	filter(id < 600) %>%
+	filter(id %in% incl_id) %>%
+	arrange(group, id) 
+
+# ~~~~ QUESTIONNAIRES ~~~~ ---- 
+qnr <- read_csv("data/demographics/All_participants_combined_data_24-Apr-2020_totals.csv") %>% 
+	rename(id = ID_Code, 
+				 iq = WTAW_Standard, 
+				 trail_a = `Trail_Making_A_(seconds)'`, 
+				 trail_b = `Trail_Making_B_(seconds)'`, 
+				 ami_total = AMI_tot, 
+				 ami_ba = AMI_BA, 
+				 ami_sm = AMI_SM, 
+				 ami_es = AMI_ES, 
+				 bdi_total = BDI_total, 
+				 edu = Education_years) %>% 
+	dplyr::select(id, iq, trail_a, trail_b, ami_total, ami_ba, ami_sm, ami_es, bdi_total, edu, SD_learn_p1, SD_learn_p2, SD_similar_p1, SD_similar_p2) %>% 
+	mutate(id = if_else(id == 2012, 299, id)) %>% 
+	filter(id < 600) %>% 
+	filter(id %in% incl_id) %>% 
+	mutate(iq = as.numeric(iq), 
+				 trail_a = replace(trail_a, is.nan(trail_a), NA),
+				 trail_b = replace(trail_b, is.nan(trail_b), NA), 
+				 ami_total = replace(ami_total, is.nan(ami_total), NA), 
+				 ami_ba = replace(ami_ba, is.nan(ami_ba), NA),
+				 ami_sm = replace(ami_sm, is.nan(ami_sm), NA),
+				 ami_es = replace(ami_es, is.nan(ami_es), NA), 
+				 bdi_total = replace(bdi_total, is.nan(bdi_total), NA), 
+				 edu = replace(edu, is.nan(edu), NA), 
+				 SD_learn_p1 = replace(SD_learn_p1, is.nan(SD_learn_p1), NA), 
+				 SD_learn_p2 = replace(SD_learn_p2, is.nan(SD_learn_p2), NA), 
+				 SD_similar_p1 = replace(SD_similar_p1, is.nan(SD_similar_p1), NA),
+				 SD_similar_p2 = replace(SD_similar_p2, is.nan(SD_similar_p2), NA),
+				 )
+
+# ~~~~ KL DIVERGENCE ~~~~ ----
+load("behaviour/processed-results/ku0_kld_hc.RData")
+kld_hc <- result_tb
+load("behaviour/processed-results/ku0_kld_mpfc.RData")
+kld_mpfc <- result_tb
+load("behaviour/processed-results/ku0_kld_lc.RData")
+kld_lc <- result_tb
+rm(result_tb)
+
+## Merge tables 
+kld <- rbind(kld_hc, kld_mpfc, kld_lc) %>%
+	filter(id %in% incl_id) # exclude participants 
+
+rm(kld_hc, kld_mpfc, kld_lc)
+
+# ~~~~ MERGING ~~~~ ---- 
+data_all <- demogr %>% 
+	left_join(qnr, by = "id") %>% 
+	left_join(acc_tb, by = "id") %>% 
+	left_join(other_k, by = "id") %>% 
+	left_join(kld, by = "id") %>%
+	mutate(group = as.factor(group)) %>%
+	filter(!id %in% excl_id)
+```
