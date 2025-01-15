@@ -6,3 +6,6 @@
 /.quarto/
 
 data/stanfit/
+
+scripts/analysis_cache/
+scripts/analysis_files/
