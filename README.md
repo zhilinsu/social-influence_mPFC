@@ -10,7 +10,7 @@ root
        ├─ plots 
        ├─ stanfit # stanfit objects
   ├─ lesion   # lesion analysis
-       ├─ all_lesion_patients 
+       ├─ all_lesion_patients 
        ├─ mPFC_patients_only
   ├─ scripts  # R and Stan code to run the analyses and produce figures
        ├─ helper_functions 
@@ -24,3 +24,11 @@ All behavioural analyses were performed using R (v4.2.1) in RStudio (v2023.06.2)
 Model fitting was performed using Stan (v2.32) and the RStan (v2.21.7) package in RStudio. Installation guides can be found at <https://mc-stan.org/users/interfaces/>.
 
 All these installations should only take a few minutes to complete.
+
+# Preparation 
+
+**0 - Data**
+
+Data for the delegated inter-temporal choice task collected through MATLAB have been extracted and aggregated into `sd_data_mpfc.RData`, for the subsequent analyses and modelling using R and Stan. 
+
+Other self-reported data were stored in `demographics.csv` and `questionnaires.csv`.
