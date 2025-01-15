@@ -22,6 +22,9 @@ fontsize: 12pt
 
 # Clear up 
 rm(list = ls())
+
+# Whether to re-save results? 0 for no; 1 for yes. 
+is_save <- 0
 ```
 
 ```{r}
@@ -100,4 +103,46 @@ demogr <- read_csv("data/demographics.csv") |>
 	rename(id = ID_Code, group = `Group SD mPFC`, age = Age, gender = Gender) |> 
 	dplyr::select(id, group, age, gender) |> 
 	mutate(id = if_else(id == 2012, 299, id))
+
+qnr <- read_csv("data/questionnaires.csv") |>  
+		rename(id = ID_Code, 
+				 iq = WTAW_Standard, 
+				 trail_a = `Trail_Making_A_(seconds)'`, 
+				 trail_b = `Trail_Making_B_(seconds)'`, 
+				 ami_total = AMI_tot, 
+				 ami_ba = AMI_BA, 
+				 ami_sm = AMI_SM, 
+				 ami_es = AMI_ES, 
+				 bdi_total = BDI_total, 
+				 edu = Education_years) |>  
+	dplyr::select(id, iq, trail_a, trail_b, ami_total, ami_ba, ami_sm, ami_es, bdi_total, edu, 
+								SD_similar_p1, SD_similar_p2) |>   
+	mutate(id = if_else(id == 2012, 299, id))
+
+inclusion_data <- demogr %>%
+	left_join(qnr, by = "id") %>% 
+	filter(!id %in% excl_id)
+
+inclusion_data <- inclusion_data %>% 
+	filter(group == 3 | group == 4 | (group == 1 & age >= 24 & age <= 76)) %>% 
+	filter(group == 3 | group == 4 | (group == 1 & trail_b > 40))
+
+# IDs that are included 
+incl_id_hc <- inclusion_data %>%
+	filter(group == 1) %>%
+	pull(id)
+
+incl_id_mpfc <- inclusion_data %>%
+	filter(group == 3) %>%
+	pull(id)
+
+incl_id_lc <- inclusion_data %>%
+	filter(group == 4) %>%
+	pull(id)
+
+if (is_save == 1) {
+	saveRDS(incl_id_hc, file = "data/incl_id_hc.RDS")
+	saveRDS(incl_id_mpfc, file = "data/incl_id_mpfc.RDS")
+	saveRDS(incl_id_lc, file = "data/incl_id_lc.RDS")
+}
 ```
