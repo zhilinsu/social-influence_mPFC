@@ -29,6 +29,20 @@ All these installations should only take a few minutes to complete.
 
 **0 - Data**
 
-Data for the delegated inter-temporal choice task collected through MATLAB have been extracted and aggregated into `sd_data_mpfc.RData`, for the subsequent analyses and modelling using R and Stan. 
+Data for the delegated inter-temporal choice task collected through MATLAB have been extracted and aggregated into `sd_data_mpfc.RData`, for the subsequent analysis and modelling using R and Stan. 
 
 Other self-reported data were stored in `demographics.csv` and `questionnaires.csv`.
+
+# Model fitting 
+
+**1 - Bayesian modelling with Stan**
+
+Run the R scripts `run_*1_model_*2.R` to call the corresponding Stan scripts to perform Bayesian modelling.
+
+**2 - Parameter recovery**
+
+**3 - Posterior predictive checks**
+
+# Behavioural analysis 
+
+# Lesion analysis 
