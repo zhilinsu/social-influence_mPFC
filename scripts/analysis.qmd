@@ -10,9 +10,10 @@ toc-depth: 6
 embed-resources: true 
 theme: default
 mainfont: Roboto 
+fontsize: 12pt 
 ---
 
-# Script preparation 
+# Preparation 
 
 ```{r}
 #| label: setting 
@@ -67,4 +68,36 @@ source("scripts/helper_functions/helper_functions.R")
 source("scripts/helper_functions/rankBasedCommonFunctions.R")
 source("scripts/helper_functions/spearmanSampler.R")
 ```
+
+```{r}
+#| label: plot_setting 
+#| echo: false 
+#| warning: false 
+
+resolution <- 1200
+plot_h <- 4
+ax_text <- 12
+ax_title <- 16
+```
+
+# Exclusion 
+
+```{r}
+#| label: exclusion 
+#| echo: false 
+#| warning: false 
+
+excl_id <- c(110, 111, 118, 158, 220, 261, 273)
+excl_id_qnr <- c(106, 266)
+```
+
+```{r}
+#| label: inclusion 
+#| echo: false 
+#| warning: false 
+
+demogr <- read_csv("data/demographics.csv") |> 
+	rename(id = ID_Code, group = `Group SD mPFC`, age = Age, gender = Gender) |> 
+	dplyr::select(id, group, age, gender) |> 
+	mutate(id = if_else(id == 2012, 299, id))
 ```
