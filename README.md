@@ -9,6 +9,9 @@ root
   ├─ data     # behavioural data and plots 
        ├─ plots 
        ├─ stanfit # stanfit objects
+  ├─ lesion   # lesion analysis
+       ├─ all_lesion_patients 
+       ├─ mPFC_patients_only
   ├─ scripts  # R and Stan code to run the analyses and produce figures
        ├─ helper_functions 
        ├─ stan_model 
