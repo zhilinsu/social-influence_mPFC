@@ -41,7 +41,11 @@ Run the R scripts `run_ku0-model_self.R` and `run_ku0-model_other.R` to call the
 
 **2 - Parameter recovery**
 
+Run the R script `parameter_recovery.R` to perform the process of parameter recovery for the selected model. It also generates the corresponding plot (**Figure S1**).
+
 **3 - Posterior predictive checks**
+
+Run the R script `posterior_predictive_checks.R` to perform posterior predictive checks for the selected model. It also generates the corresponding plot (**Figure S2**).
 
 # Behavioural analysis 
 
