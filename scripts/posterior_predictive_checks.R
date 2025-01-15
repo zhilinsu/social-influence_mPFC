@@ -28,7 +28,7 @@ set.seed(1213)
 acc_result_list <- vector(mode = "list", length = 6)
 
 # 1 for healthy controls, 3 for mPFC patients, 4 for lesion controls 
-pop <- 4
+pop <- 1
 
 # ============================================================================.
 # Preparation #### 
