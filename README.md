@@ -37,7 +37,7 @@ Other self-reported data were stored in `demographics.csv` and `questionnaires.c
 
 **1 - Bayesian modelling with Stan**
 
-Run the R scripts `run_*1_model_*2.R` to call the corresponding Stan scripts to perform Bayesian modelling.
+Run the R scripts `run_ku0-model_self.R` and `run_ku0-model_other.R` to call the corresponding Stan scripts to perform Bayesian modelling.
 
 **2 - Parameter recovery**
 
