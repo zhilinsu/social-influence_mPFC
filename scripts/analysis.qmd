@@ -11,6 +11,8 @@ embed-resources: true
 theme: default
 mainfont: Roboto 
 fontsize: 12pt 
+execute: 
+  cache: true
 ---
 
 # Preparation 
