@@ -169,7 +169,7 @@ for (pop_value in pop_vec) {
 		print(start_time)
 		cat("Calling", n_chains, "simulations in Stan... \n")
 		
-		fit_kt <- stan(model_file, 
+		fit_ku <- stan(model_file, 
 									 data   = data_list,
 									 chains = n_chains, 
 									 iter   = n_iter, 
@@ -195,7 +195,7 @@ for (pop_value in pop_vec) {
 			file_name <- paste("stanfit_ku0_lc_self_", s_block, ".rds", sep = "")
 		}
 		
-		saveRDS(fit_kt, paste("data/stanfit/", file_name, sep = "")) 
+		saveRDS(fit_ku, paste("data/stanfit/", file_name, sep = "")) 
 		
 		# 4 - Clear variables 
 		rm(data_list, fit_kt)
