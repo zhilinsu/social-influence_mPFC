@@ -3,15 +3,15 @@
 # ============================================================================.
 # Preference-uncertainty (KU) model for multiple subjects. 
 # The script is for Other blocks. 
-# KU model #0: Hierarchical structure with uninformative priors.
+# Hierarchical structure with uninformative priors.
 # 
 # Ref: Moutoussis et al., 2016, *PLoS Comput. Biol.*  
 # 
 # Zhilin Su
 # zhilinsu1312@gmail.com / z.su.1@pgr.bham.ac.uk 
 #
-# Project: Zhilin's PhD project 2 - vmPFC and social discounting.  
-# Last revision: 09 Dec 2023, Zhilin Su. 
+# Project: Zhilin's PhD project 2 - mPFC and social influence.  
+# Last revision: 15 Jan 2025, Zhilin Su. 
 
 # ============================================================================.
 # Preparation #### 
@@ -32,13 +32,13 @@ set.seed(1213)
 # Set Populations & Initialisation #### 
 # ============================================================================.
 # 1 for healthy controls, 3 for mPFC lesions, and 4 for lesion controls. 
-pop_vec <- c(0, 1, 3, 4)
+pop_vec <- c(1, 3, 4)
 
 for (pop_value in pop_vec) {
 	
 	pop <- pop_value
 	
-	load("behaviour/processed-data/sd_data_mpfc.RData")
+	load("data/sd_data_mpfc.RData")
 	
 	if (pop == 0) {
 		pt_1 <- sd_hc
@@ -47,9 +47,9 @@ for (pop_value in pop_vec) {
 		other_order_1 <- k_hc 
 		other_order_2 <- k_mpfc 
 		other_order_3 <- k_lc
-		incl_id_1 <- readRDS("behaviour/processed-data/incl_id_hc.rds")
-		incl_id_2 <- readRDS("behaviour/processed-data/incl_id_mpfc.rds")
-		incl_id_3 <- readRDS("behaviour/processed-data/incl_id_lc.rds")
+		incl_id_1 <- readRDS("data/incl_id_hc.rds")
+		incl_id_2 <- readRDS("data/incl_id_mpfc.rds")
+		incl_id_3 <- readRDS("data/incl_id_lc.rds")
 		
 		pt <- abind(pt_1, pt_2, pt_3, along = 3)
 		other_order <- rbind(other_order_1, other_order_2, other_order_3)
@@ -58,17 +58,17 @@ for (pop_value in pop_vec) {
 	} else if (pop == 1) {
 		pt <- sd_hc 
 		other_order <- k_hc
-		incl_id <- readRDS("behaviour/processed-data/incl_id_hc.rds")
+		incl_id <- readRDS("data/incl_id_hc.rds")
 		
 	} else if (pop == 3) {
 		pt <- sd_mpfc
 		other_order <- k_mpfc 
-		incl_id <- readRDS("behaviour/processed-data/incl_id_mpfc.rds")
+		incl_id <- readRDS("data/incl_id_mpfc.rds")
 		
 	} else if (pop == 4) {
 		pt <- sd_lc
 		other_order <- k_lc 
-		incl_id <- readRDS("behaviour/processed-data/incl_id_lc.rds")
+		incl_id <- readRDS("data/incl_id_lc.rds")
 	}
 	
 	rm(sd_hc, sd_mpfc, sd_lc, k_hc, k_mpfc, k_lc)
@@ -129,7 +129,7 @@ for (pop_value in pop_vec) {
 	rstan_options(auto_write = TRUE)
 	options(mc.cores = 4)
 	
-	model_file <- "scripts/stan_model/ku0/ku0-model_other.stan"
+	model_file <- "scripts/ku0-model_other.stan"
 	
 	n_iter     <- 4000
 	n_chains   <- 4 
@@ -169,7 +169,7 @@ for (pop_value in pop_vec) {
 		print(start_time)
 		cat("Calling", n_chains, "simulations in Stan... \n")
 		
-		fit_kt <- stan(model_file, 
+		fit_ku <- stan(model_file, 
 									 data   = data_list,
 									 chains = n_chains, 
 									 iter   = n_iter, 
@@ -195,9 +195,9 @@ for (pop_value in pop_vec) {
 			file_name <- paste("stanfit_ku0_lc_other_", o_block, ".rds", sep = "")
 		}
 		
-		saveRDS(fit_kt, paste("behaviour/processed-data/stanfit/ku0/", file_name, sep = "")) 
+		saveRDS(fit_ku, paste("data/stanfit/", file_name, sep = "")) 
 		
 		# 4 - Clear variables 
-		rm(data_list, fit_kt)
+		rm(data_list, fit_ku)
 	}
 }
