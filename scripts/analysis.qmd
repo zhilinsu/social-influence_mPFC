@@ -171,7 +171,7 @@ if (is_save == 1) {
 #| warning: false 
 
 # ~~~~ TASK DATA ~~~~ ---- 
-# Load data ---- 
+# Load data 
 load("data/sd_data_mpfc.RData")
 
 sd_data <- abind::abind(sd_hc, sd_mpfc, sd_lc, along = 3)
@@ -191,10 +191,10 @@ other_k <- other_k %>%
 	mutate(other_i_k = if_else(other1_pref == "i", other1_k, other2_k), 
 				 other_p_k = if_else(other1_pref == "p", other1_k, other2_k))
 
-# Exclude participants ---- 
-incl_id_hc <- readRDS("behaviour/processed-data/incl_id_hc.rds")
-incl_id_mpfc <- readRDS("behaviour/processed-data/incl_id_mpfc.rds")
-incl_id_lc <- readRDS("behaviour/processed-data/incl_id_lc.rds")
+# Exclude participants
+incl_id_hc <- readRDS("data/incl_id_hc.rds")
+incl_id_mpfc <- readRDS("data/incl_id_mpfc.rds")
+incl_id_lc <- readRDS("data/incl_id_lc.rds")
 incl_id <- c(incl_id_hc, incl_id_mpfc, incl_id_lc)
 
 incl_condition <- sd_data[1, "id", ] %in% incl_id 
@@ -202,18 +202,18 @@ sd_data <- sd_data[,, incl_condition]
 other_k <- other_k %>% 
 	filter(id %in% incl_id)
 
-# Extract metadata ---- 
+# Extract metadata 
 ## dim(sd_data) = [# trials, # experimental parameters, # participants]
 n_trials <- dim(sd_data)[1]
 n_pt <- dim(sd_data)[3]
 
-# Reshape data ---- 
-## Extract the ID ---- 
+# Reshape data 
+## Extract the ID  
 id_vec <- vector("numeric", length = n_pt)
 id_vec <- sd_data[1, "id", 1:n_pt]
 names(id_vec) <- NULL
 
-## Initialise a 3D array ---- 
+## Initialise a 3D array
 sd_data_new <- array(0, dim = dim(sd_data))
 col_names <- c("id", "s_dec_1", "s_rs_1", "s_rl_1", "s_dl_1", 
 							 "so_dec_i", "o_rs_i", "o_rl_i", "o_dl_i", "o_dec_i", 
@@ -222,7 +222,7 @@ col_names <- c("id", "s_dec_1", "s_rs_1", "s_rl_1", "s_dl_1",
 							 "s_dec_p", "s_rs_p", "s_rl_p", "s_dl_p")
 colnames(sd_data_new) <- col_names
 
-## Reshape data ---- 
+## Reshape data 
 for (i in 1:n_pt) {
 	
 	other1_pref <- other_k$other1_pref[i]
@@ -238,8 +238,8 @@ for (i in 1:n_pt) {
 	}
 }
 
-# Calculate accuracy ---- 
-## Initialise a tibble to store results ---- 
+# Calculate accuracy 
+## Initialise a tibble to store results 
 col_names <- c("id", "acc_i", "acc_p")
 acc_mat <- matrix(nrow = n_pt, ncol = length(col_names))
 colnames(acc_mat) <- col_names
@@ -248,7 +248,7 @@ acc_tb$id <- id_vec
 
 rm(acc_mat)
 
-## Initialise arrays ---- 
+## Initialise arrays 
 self_decision <- array(0, dim = c(n_pt, n_trials)) 
 reward_sooner <- array(0, dim = c(n_pt, n_trials))
 reward_later <- array(0, dim = c(n_pt, n_trials))
@@ -279,7 +279,7 @@ for (o_block in c("i", "p")) {
 }
 
 # ~~~~ DEMOGRAPHICS ~~~~ ---- 
-demogr <- read_csv("data/demographics/All_participants_data_index.csv") %>%
+demogr <- read_csv("data/demographics.csv") %>%
 	rename(id = ID_Code, group = `Group SD mPFC`, age = Age, gender = Gender) %>% 
 	dplyr::select(id, group, age, gender) %>%
 	mutate(id = if_else(id == 2012, 299, id)) %>% 
@@ -288,7 +288,7 @@ demogr <- read_csv("data/demographics/All_participants_data_index.csv") %>%
 	arrange(group, id) 
 
 # ~~~~ QUESTIONNAIRES ~~~~ ---- 
-qnr <- read_csv("data/demographics/All_participants_combined_data_24-Apr-2020_totals.csv") %>% 
+qnr <- read_csv("data/questionnaires.csv") %>% 
 	rename(id = ID_Code, 
 				 iq = WTAW_Standard, 
 				 trail_a = `Trail_Making_A_(seconds)'`, 
@@ -299,7 +299,8 @@ qnr <- read_csv("data/demographics/All_participants_combined_data_24-Apr-2020_to
 				 ami_es = AMI_ES, 
 				 bdi_total = BDI_total, 
 				 edu = Education_years) %>% 
-	dplyr::select(id, iq, trail_a, trail_b, ami_total, ami_ba, ami_sm, ami_es, bdi_total, edu, SD_learn_p1, SD_learn_p2, SD_similar_p1, SD_similar_p2) %>% 
+	dplyr::select(id, iq, trail_a, trail_b, ami_total, ami_ba, ami_sm, ami_es, bdi_total, edu,
+								SD_similar_p1, SD_similar_p2) %>% 
 	mutate(id = if_else(id == 2012, 299, id)) %>% 
 	filter(id < 600) %>% 
 	filter(id %in% incl_id) %>% 
@@ -312,18 +313,16 @@ qnr <- read_csv("data/demographics/All_participants_combined_data_24-Apr-2020_to
 				 ami_es = replace(ami_es, is.nan(ami_es), NA), 
 				 bdi_total = replace(bdi_total, is.nan(bdi_total), NA), 
 				 edu = replace(edu, is.nan(edu), NA), 
-				 SD_learn_p1 = replace(SD_learn_p1, is.nan(SD_learn_p1), NA), 
-				 SD_learn_p2 = replace(SD_learn_p2, is.nan(SD_learn_p2), NA), 
 				 SD_similar_p1 = replace(SD_similar_p1, is.nan(SD_similar_p1), NA),
 				 SD_similar_p2 = replace(SD_similar_p2, is.nan(SD_similar_p2), NA),
 				 )
 
 # ~~~~ KL DIVERGENCE ~~~~ ----
-load("behaviour/processed-results/ku0_kld_hc.RData")
+load("data/ku0_kld_hc.RData")
 kld_hc <- result_tb
-load("behaviour/processed-results/ku0_kld_mpfc.RData")
+load("data/ku0_kld_mpfc.RData")
 kld_mpfc <- result_tb
-load("behaviour/processed-results/ku0_kld_lc.RData")
+load("data/ku0_kld_lc.RData")
 kld_lc <- result_tb
 rm(result_tb)
 
@@ -342,3 +341,4 @@ data_all <- demogr %>%
 	mutate(group = as.factor(group)) %>%
 	filter(!id %in% excl_id)
 ```
+
