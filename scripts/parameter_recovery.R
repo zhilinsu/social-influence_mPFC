@@ -296,5 +296,5 @@ plt <- ggplot(data = parm_recovery_final,
 				legend.title = element_text(size = 12, angle = 270), 
 				legend.text = element_text(size = 12))
 
-ggsave("behaviour/plots/recovered.png", plt, 
+ggsave("data/plots/recovered.png", plt, 
 			 height = 4, width = 4 * 1.3, dpi = 1200)
