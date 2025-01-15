@@ -1,5 +1,5 @@
 // Implementation of the preference-uncertainty (KU) model 
-// for the social discounting task.
+// for the delegated inter-temporal choice task.
 // Hierarchical structure with uninformative priors. 
 // This is for simulating data. 
 // 
