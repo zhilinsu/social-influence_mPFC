@@ -342,3 +342,73 @@ data_all <- demogr %>%
 	filter(!id %in% excl_id)
 ```
 
+```{r}
+#| label: preprocessing_2
+#| echo: false 
+#| warning: false 
+
+# Handle exceptions:
+## when subjects had no Others of different preferences. 
+# 
+# Current measure: 
+## Data were analysed for Others with the greatest distance between
+## the subject’s own discount rate, and the Other's discount rate estimated by subject.
+
+n_pt <- dim(data_all)[1]
+
+for (i_id in 1:n_pt) {
+	diff_i <- data_all[i_id, "self_1_km"] - data_all[i_id, "other_i_km"]
+	diff_p <- data_all[i_id, "self_1_km"] - data_all[i_id, "other_p_km"]
+	
+	# no Impulsive other
+	if (check_sign(diff_i, diff_p) && diff_i > 0) { 
+		if (abs(diff_i) > abs(diff_p)) {
+			data_all[i_id, "acc_p"] <- data_all[i_id, "acc_i"]
+			data_all[i_id, "acc_i"] <- NA
+		} else if (abs(diff_i) < abs(diff_p)) {
+			data_all[i_id, "acc_i"] <- NA
+		}
+	}
+	
+	# no Patient other 
+	if (check_sign(diff_i, diff_p) && diff_i < 0) { 
+		if (abs(diff_i) > abs(diff_p)) {
+			data_all[i_id, "acc_p"] <- NA
+		} else if (abs(diff_i) < abs(diff_p)) {
+			data_all[i_id, "acc_i"] <- data_all[i_id, "acc_p"]
+			data_all[i_id, "acc_p"] <- NA
+		}
+	}
+}
+
+# ~~~~ FACTOR LEVELS ~~~~ ---- 
+## For plotting, the order is: HC, mPFC, LC
+data_all_plt <- data_all %>%
+	mutate(group = factor(group, 
+												levels = c(1, 3, 4), 
+												labels = c("HC", "mPFC", "LC"), 
+												ordered = FALSE))
+
+## For modelling, the order is: mPFC, HC, LC
+data_all <- data_all %>%
+	mutate(group = factor(group, 
+												levels = c(3, 1, 4), 
+												labels = c("mPFC", "HC", "LC"), 
+												ordered = FALSE))
+```
+
+# Save the pre-processed data 
+
+```{r}
+#| label: save
+#| echo: false 
+#| warning: false 
+
+if (is_save == 1) {
+	saveRDS(data_all, file = "data/data_all.RData")
+	write_csv(data_all, file = "data/data_all.csv")
+	
+	saveRDS(data_all_plt, file = "data/data_all_plt.RData")
+	write_csv(data_all_plt, file = "data/data_all_plt.csv")
+}
+```
