@@ -198,6 +198,6 @@ for (pop_value in pop_vec) {
 		saveRDS(fit_ku, paste("data/stanfit/", file_name, sep = "")) 
 		
 		# 4 - Clear variables 
-		rm(data_list, fit_kt)
+		rm(data_list, fit_ku)
 	}
 }
