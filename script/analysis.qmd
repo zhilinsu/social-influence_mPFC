@@ -1,0 +1,70 @@
+---
+title: "Dorsomedial and ventromedial prefrontal cortex lesions differentially impact social influence and temporal impulsivity"
+author: "Zhilin Su"
+date: "2025"
+date-format: "YYYY"
+format: html
+page-layout: full 
+toc: true
+toc-depth: 6
+embed-resources: true 
+theme: default
+mainfont: Roboto 
+---
+
+# Script preparation 
+
+```{r}
+#| label: setting 
+#| echo: false 
+#| warning: false 
+
+# Clear up 
+rm(list = ls())
+```
+
+```{r}
+#| label: libraries  
+#| echo: false 
+#| warning: false 
+
+# Load libraries ---- 
+## Data wrangling 
+library(dplyr)
+library(readr)
+library(forcats)
+library(stringr)
+
+## Visualisation 
+library(ggplot2)
+library(ggpubr)
+library(ggtext) # to format the annotations on plots 
+library(ggpattern)
+library(ggsignif)
+library(grid) # to control the grid parameters 
+library(gridExtra)
+library(patchwork)
+
+## Statistics & modelling 
+library(rstatix)
+library(lme4)
+library(lmerTest)
+library(Hmisc) # rcorr
+library(sjPlot)
+library(parameters)
+library(performance)
+library(arm)
+library(BayesFactor) 
+library(emmeans)
+library(effectsize) 
+library(statpsych)
+
+## Others 
+library(finalfit) # p_tidy() 
+library(kableExtra) 
+library(mixedpower) # power analysis 
+source("scripts/helper_functions/helper_functions.R")
+source("scripts/helper_functions/rankBasedCommonFunctions.R")
+source("scripts/helper_functions/spearmanSampler.R")
+```
+```
