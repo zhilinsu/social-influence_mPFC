@@ -146,3 +146,17 @@ if (is_save == 1) {
 	saveRDS(incl_id_lc, file = "data/incl_id_lc.RDS")
 }
 ```
+
+# Participants
+
+## Healthy controls
+
+71 healthy controls (`Group SD mPFC` label = 1) were included. 
+
+## mPFC lesions
+
+33 mPFC lesion patients (`Group SD mPFC` label = 3) were recruited.
+
+## Lesion controls
+
+17 lesion controls (`Group SD mPFC` label = 4) were recruited.
