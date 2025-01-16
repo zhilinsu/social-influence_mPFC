@@ -1002,8 +1002,8 @@ bf01_acc_mpfc_lc_overall <- extractBF(bf01_acc_mpfc_lc_overall)
 #| echo: false 
 #| warning: false 
 #| fig-cap: "Learning performances." 
-#| fig-width: 3.4
-#| fig-height: 4
+#| fig-width: 4.25
+#| fig-height: 5
 
 # Preparation 
 vars <- "acc"
@@ -1199,8 +1199,8 @@ bf01_km_mpfc_lc_overall <- extractBF(bf01_km_mpfc_lc_overall)
 #| echo: false 
 #| warning: false 
 #| fig-cap: "Mean of discounting distribution." 
-#| fig-width: 2.4
-#| fig-height: 4
+#| fig-width: 3
+#| fig-height: 5
 
 # Preparation
 vars <- "self_1_km"
@@ -1384,8 +1384,8 @@ bf01_ku_mpfc_hc_overall <- extractBF(bf01_ku_mpfc_hc_overall)
 #| echo: false 
 #| warning: false 
 #| fig-cap: "Standard deviation of discounting distribution." 
-#| fig-width: 2.4
-#| fig-height: 4
+#| fig-width: 3
+#| fig-height: 5
 
 # Preparation
 vars <- "self_1_ku"
@@ -1768,20 +1768,20 @@ print(kld_lmer_3e_table)
 #| echo: false 
 #| warning: false 
 #| fig-cap: "Signed KL divergence." 
-#| fig-width: 4
-#| fig-height: 4
+#| fig-width: 5
+#| fig-height: 5
 
 # Preparation 
 vars <- "norm_kl"
 
-plt_data <- data_kld_plt %>% 
-	group_by(group, other_pref, condition1) %>% 
-	filter(!is.na(get(vars))) %>%
+plt_data <- data_kld_plt |> 
+	group_by(group, other_pref, condition1) |>  
+	filter(!is.na(get(vars))) |> 
 	summarise(n = n(), 
 						mean = mean(get(vars), na.rm = TRUE), 
 						median = median(get(vars), na.rm = TRUE), 
 						sd = sd(get(vars), na.rm = TRUE), 
-						se = sd / sqrt(n)) %>% 
+						se = sd / sqrt(n)) |> 
 	ungroup() 
 
 data_kld_plt <- data_kld_plt |> 
@@ -1878,15 +1878,81 @@ if (is_save == 1) {
 ```
 
 # 6. Correlations
-## 6.1. Learning performances vs Signed KL divergence 
+## 6.1. Learning performances vs Signed KL divergence (**Table S5**)
 
 ```{r}
 #| label: corr_accuracy_kld 
 #| echo: false 
 #| warning: false 
+
+data_kld <- data_kld |> 
+	mutate(id = as.factor(id))
+
+data_acc_kld <- data_acc |> 
+	dplyr::select(!condition1) |> 
+	left_join(data_kld, by = c("id", "group", "other_pref"))
+
+# Healthy controls impulsive ----
+data_acc_kld_hc_i <- data_acc_kld |> 
+	dplyr::filter(group == "HC") |> 
+	dplyr::filter(other_pref == "impulsive")
+
+corr_acc_kld_hc_i <- rcorr(data_acc_kld_hc_i$acc, 
+													 data_acc_kld_hc_i$norm_kl, 
+													 type = "spearman")
+
+corr_acc_kld_hc_i_ci <- psych::corr.test(data_acc_kld_hc_i$acc,
+																				 data_acc_kld_hc_i$norm_kl,
+																				 method = "spearman")
+
+set.seed(1213)
+rho_samples <- spearmanGibbsSampler(xVals = data_acc_kld_hc_i$acc,
+																		yVals = data_acc_kld_hc_i$norm_kl)
+
+bf10 <- computeBayesFactorOneZero(rho_samples$rhoSamples,
+																	whichTest = "Spearman",
+																	priorParameter = 1)
+bf01 <- 1 / bf10
+
+# Healthy controls patient ---- 
+data_acc_kld_hc_p <- data_acc_kld |> 
+	dplyr::filter(group == "HC" & other_pref == "patient")
+
+corr_acc_kld_hc_p <- rcorr(data_acc_kld_hc_p$acc, 
+													 data_acc_kld_hc_p$norm_kl, 
+													 type = "spearman")
+
+corr_acc_kld_hc_p_ci <- psych::corr.test(data_acc_kld_hc_p$acc,
+																				 data_acc_kld_hc_p$norm_kl,
+																				 method = "spearman")
+
+set.seed(1213)
+rho_samples <- spearmanGibbsSampler(xVals = data_acc_kld_hc_p$acc,
+																		yVals = data_acc_kld_hc_p$norm_kl)
+
+bf10 <- computeBayesFactorOneZero(rho_samples$rhoSamples,
+																	whichTest = "Spearman",
+																	priorParameter = 1)
+bf01 <- 1 / bf10
+
+# mPFC lesions impulsive
+data_acc_kld_mpfc_i <- data_acc_kld |> 
+	dplyr::filter(group == "mPFC") |> 
+	dplyr::filter(other_pref == "impulsive")
+
+set.seed(1213)
+rho_samples <- spearmanGibbsSampler(xVals = data_acc_kld_mpfc_i$acc,
+																		yVals = data_acc_kld_mpfc_i$norm_kl)
+
+bf10 <- computeBayesFactorOneZero(rho_samples$rhoSamples,
+																	whichTest = "Spearman",
+																	priorParameter = 1)
+bf01 <- 1 / bf10
+
+# Lesion controls 
 ```
 
-## 6.2. Perceived similarity vs Signed KL divergence 
+## 6.2. Perceived similarity vs Signed KL divergence (**Table S6**)
 
 ## 6.3. Total lesion size vs Self baseline temporal impulsivity 
 
