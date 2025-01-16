@@ -2760,16 +2760,6 @@ border: 0;
 }
 </style>
 
-  
-  <script>
-    (function () {
-      var script = document.createElement("script");
-      script.type = "text/javascript";
-      script.src  = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js";
-      document.getElementsByTagName("head")[0].appendChild(script);
-    })();
-  </script>
-
 
 </head>
 
@@ -2797,6 +2787,7 @@ border: 0;
   <li><a href="#apathy-motivation-index-ami" id="toc-apathy-motivation-index-ami" class="nav-link" data-scroll-target="#apathy-motivation-index-ami">1.2. Apathy-Motivation Index (AMI)</a></li>
   <li><a href="#beck-depression-inventory-bdi" id="toc-beck-depression-inventory-bdi" class="nav-link" data-scroll-target="#beck-depression-inventory-bdi">1.3. Beck Depression Inventory (BDI)</a></li>
   <li><a href="#executive-function-trail-making-test" id="toc-executive-function-trail-making-test" class="nav-link" data-scroll-target="#executive-function-trail-making-test">1.4. Executive function (Trail Making Test)</a></li>
+  <li><a href="#perceived-similarity" id="toc-perceived-similarity" class="nav-link" data-scroll-target="#perceived-similarity">1.5. Perceived similarity</a></li>
   </ul></li>
   <li><a href="#accuracy" id="toc-accuracy" class="nav-link" data-scroll-target="#accuracy">2. Accuracy</a>
   <ul>
@@ -2820,8 +2811,16 @@ border: 0;
   <li><a href="#bayes-factor-2" id="toc-bayes-factor-2" class="nav-link" data-scroll-target="#bayes-factor-2">4.3. Bayes factor</a></li>
   <li><a href="#plot-figure-3b-right" id="toc-plot-figure-3b-right" class="nav-link" data-scroll-target="#plot-figure-3b-right">4.4. Plot (<strong>Figure 3b</strong> right)</a></li>
   </ul></li>
-  <li><a href="#signed-kl-divergence-d_kl" id="toc-signed-kl-divergence-d_kl" class="nav-link" data-scroll-target="#signed-kl-divergence-d_kl">5. Signed KL divergence (<span class="math inline">\(D_{KL}\)</span>)</a></li>
-  <li><a href="#lesion-analysis" id="toc-lesion-analysis" class="nav-link" data-scroll-target="#lesion-analysis">Lesion analysis</a></li>
+  <li><a href="#signed-kl-divergence-dkl" id="toc-signed-kl-divergence-dkl" class="nav-link" data-scroll-target="#signed-kl-divergence-dkl">5. Signed KL divergence (D<sub>KL</sub>)</a>
+  <ul>
+  <li><a href="#preparation-4" id="toc-preparation-4" class="nav-link" data-scroll-target="#preparation-4">5.1. Preparation</a></li>
+  <li><a href="#descriptive-3" id="toc-descriptive-3" class="nav-link" data-scroll-target="#descriptive-3">5.2. Descriptive</a></li>
+  <li><a href="#linear-mixed-effects-models-lmm3a-3e-tables-s3-s4" id="toc-linear-mixed-effects-models-lmm3a-3e-tables-s3-s4" class="nav-link" data-scroll-target="#linear-mixed-effects-models-lmm3a-3e-tables-s3-s4">5.3. Linear mixed-effects models LMM3a-3e (<strong>Tables S3-S4</strong>)</a></li>
+  </ul></li>
+  <li><a href="#lesion-analysis" id="toc-lesion-analysis" class="nav-link" data-scroll-target="#lesion-analysis">6. Lesion analysis</a>
+  <ul>
+  <li><a href="#lesion-size-something" id="toc-lesion-size-something" class="nav-link" data-scroll-target="#lesion-size-something">Lesion size (something)</a></li>
+  </ul></li>
   </ul>
 </nav>
 </div>
@@ -3278,6 +3277,23 @@ border: 0;
 </div>
 </div>
 </section>
+<section id="perceived-similarity" class="level2">
+<h2 class="anchored" data-anchor-id="perceived-similarity">1.5. Perceived similarity</h2>
+<div class="cell" data-hash="analysis_cache/html/similarity_d215079ffc8e11f1f852d6689fbf92fb">
+<div class="cell-output cell-output-stdout">
+<pre><code># Fixed Effects
+
+Parameter                   | Coefficient |   SE |            CI |     t |      p
+---------------------------------------------------------------------------------
+(Intercept)                 |        5.11 | 0.23 | [ 4.65, 5.57] | 21.93 | &lt; .001
+Group (HC)                  |        0.25 | 0.28 | [-0.30, 0.80] |  0.89 | 0.373 
+Group (LC)                  |        0.17 | 0.40 | [-0.61, 0.95] |  0.44 | 0.662 
+Others (patient)            |        0.35 | 0.23 | [-0.11, 0.81] |  1.50 | 0.134 
+Group (HC):Others (patient) |        0.04 | 0.28 | [-0.51, 0.59] |  0.15 | 0.884 
+Group (LC):Others (patient) |       -0.34 | 0.40 | [-1.12, 0.44] | -0.86 | 0.393 </code></pre>
+</div>
+</div>
+</section>
 </section>
 <section id="accuracy" class="level1">
 <h1>2. Accuracy</h1>
@@ -3403,7 +3419,30 @@ Group (LC vs mPFC):Others (patient vs impulsive) |        0.72 | 1.43 | [-2.10, 
 </section>
 <section id="descriptive-1" class="level2">
 <h2 class="anchored" data-anchor-id="descriptive-1">3.2. Descriptive</h2>
-<div class="cell" data-hash="analysis_cache/html/km_descriptive_381bf4e9300510c19c73ea6a44e1d218">
+<div class="cell" data-hash="analysis_cache/html/km_descriptive_9f33e3aa44bdca93a40f6438434575fd">
+<div class="cell-output-display">
+
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>Summary table of self baseline km</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> Accuracy </th>
+   <th style="text-align:center;"> Healthy controls mean (SE) </th>
+   <th style="text-align:left;"> mPFC lesions mean (SE) </th>
+   <th style="text-align:center;"> Lesion controls mean (SE) </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> Self baseline km </td>
+   <td style="text-align:center;"> -4.988 (0.248) </td>
+   <td style="text-align:left;"> -3.691 (0.280) </td>
+   <td style="text-align:center;"> -3.818 (0.392) </td>
+  </tr>
+</tbody>
+</table>
+
+</div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Analysis of Variance Table
 
@@ -3503,7 +3542,30 @@ Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&
 </section>
 <section id="descriptive-2" class="level2">
 <h2 class="anchored" data-anchor-id="descriptive-2">4.2. Descriptive</h2>
-<div class="cell" data-hash="analysis_cache/html/ku_descriptive_2c9eb1f3c901691e8e3e76fa4ef0f9b0">
+<div class="cell" data-hash="analysis_cache/html/ku_descriptive_fbe3a45dda5f4226f23c2cca33cd49fa">
+<div class="cell-output-display">
+
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>Summary table of self baseline ku</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> Accuracy </th>
+   <th style="text-align:center;"> Healthy controls mean (SE) </th>
+   <th style="text-align:left;"> mPFC lesions mean (SE) </th>
+   <th style="text-align:center;"> Lesion controls mean (SE) </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> Self baseline ku </td>
+   <td style="text-align:center;"> 1.358 (0.042) </td>
+   <td style="text-align:left;"> 1.458 (0.107) </td>
+   <td style="text-align:center;"> 1.942 (0.172) </td>
+  </tr>
+</tbody>
+</table>
+
+</div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Analysis of Variance Table
 
@@ -3593,11 +3655,60 @@ Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&
 </div>
 </section>
 </section>
-<section id="signed-kl-divergence-d_kl" class="level1">
-<h1>5. Signed KL divergence (<span class="math inline">\(D_{KL}\)</span>)</h1>
+<section id="signed-kl-divergence-dkl" class="level1">
+<h1>5. Signed KL divergence (D<sub>KL</sub>)</h1>
+<section id="preparation-4" class="level2">
+<h2 class="anchored" data-anchor-id="preparation-4">5.1. Preparation</h2>
+<div class="cell" data-hash="analysis_cache/html/kld_c064719a7afa2950d793de75af69a21c">
+
+</div>
+</section>
+<section id="descriptive-3" class="level2">
+<h2 class="anchored" data-anchor-id="descriptive-3">5.2. Descriptive</h2>
+<div class="cell" data-hash="analysis_cache/html/kld_descriptive_8b6f86fef8383a1cfe27cc218e20f9df">
+<div class="cell-output-display">
+
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>Summary table of signed KL divergence</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> Signed KL divergence </th>
+   <th style="text-align:center;"> Healthy controls mean (SE) </th>
+   <th style="text-align:center;"> mPFC lesions mean (SE) </th>
+   <th style="text-align:left;"> Lesion controls mean (SE) </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> Impulsive Other </td>
+   <td style="text-align:center;"> 0.307 (0.105) </td>
+   <td style="text-align:center;"> 0.605 (0.167) </td>
+   <td style="text-align:left;"> 0.233 (0.102) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Patient Other </td>
+   <td style="text-align:center;"> 0.404 (0.083) </td>
+   <td style="text-align:center;"> 0.358 (0.108) </td>
+   <td style="text-align:left;"> 0.001 (0.060) </td>
+  </tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</section>
+<section id="linear-mixed-effects-models-lmm3a-3e-tables-s3-s4" class="level2">
+<h2 class="anchored" data-anchor-id="linear-mixed-effects-models-lmm3a-3e-tables-s3-s4">5.3. Linear mixed-effects models LMM3a-3e (<strong>Tables S3-S4</strong>)</h2>
+<div class="cell" data-hash="analysis_cache/html/kld_lmm_9b39b78db8e8ff7278e347579e7f0063">
+
+</div>
+</section>
 </section>
 <section id="lesion-analysis" class="level1">
-<h1>Lesion analysis</h1>
+<h1>6. Lesion analysis</h1>
+<section id="lesion-size-something" class="level2">
+<h2 class="anchored" data-anchor-id="lesion-size-something">Lesion size (something)</h2>
+</section>
 </section>
 
 </main>

@@ -614,6 +614,75 @@ kable(lm_model_stats, align = rep("c", 6),
 	kable_styling()
 ```
 
+## 1.5. Perceived similarity 
+
+```{r}
+#| label: similarity 
+#| echo: false 
+#| warning: false 
+
+# Preparation 
+data_similar_1 <- data_all %>% 
+	dplyr::select(id, group, SD_similar_p1, other1_pref) %>%
+	rename(sd_similar = SD_similar_p1, 
+				 other_pref = other1_pref) %>% 
+	mutate(condition = interaction(group, other_pref, sep = ":"))
+
+data_similar_2 <- data_all %>% 
+	dplyr::select(id, group, SD_similar_p2, other2_pref) %>% 
+	rename(sd_similar = SD_similar_p2, 
+				 other_pref = other2_pref) %>% 
+	mutate(condition = interaction(group, other_pref, sep = ":"))
+
+data_similar <- rbind(data_similar_1, data_similar_2) %>%
+	arrange(id, other_pref)
+
+rm(data_similar_1, data_similar_2)
+
+# Sum-to-zero coding
+contrasts(data_similar$other_pref) <- c(-1, 1)
+
+# LMM2 (in the supplement)
+lmer_model <- lmer(sd_similar ~ 1 + group * other_pref + (1|id), 
+									 data = data_similar)
+
+similar_lmer_table_full <- model_parameters(lmer_model)
+
+similar_lmer_table <- similar_lmer_table_full %>%
+	filter(Effects == "fixed") %>% 
+	dplyr::select(!c(df_error, Effects, Group, CI)) %>%
+	mutate(Parameter = str_replace(Parameter, pattern = "groupmPFC", replacement = "Group (mPFC)")) %>%
+	mutate(Parameter = str_replace(Parameter, pattern = "groupHC", replacement = "Group (HC)")) %>%
+	mutate(Parameter = str_replace(Parameter, pattern = "groupLC", replacement = "Group (LC)")) %>%
+	mutate(Parameter = str_replace(Parameter, pattern = "other_pref1", replacement = "Others (patient)"))
+	
+print(similar_lmer_table)
+
+# Linear regression 
+data_similar_mpfc <- data_similar %>%
+	filter(group == "mPFC")
+
+similar_lm_model_mpfc <- lm(sd_similar ~ other_pref, data = data_similar_mpfc)
+
+result_similar_lm_model_mpfc <- model_parameters(similar_lm_model_mpfc)
+
+# Bayes factor 
+data_similar_bayes <- data_similar %>%
+	mutate(id = as.factor(id)) %>% 
+	filter(!is.na(sd_similar))
+
+data_similar_bayes_mpfc <- data_similar_bayes %>%
+	filter(group == "mPFC")
+
+# BF_01 for differences between impulsive and patient others (for mPFC)
+set.seed(1213)
+bf10_similar_others_mpfc <- ttestBF(data_similar_bayes_mpfc$sd_similar[data_similar_bayes_mpfc$other_pref == "p"], 
+															 data_similar_bayes_mpfc$sd_similar[data_similar_bayes_mpfc$other_pref == "i"])
+
+bf01_similar_others_mpfc <- 1 / bf10_similar_others_mpfc
+bf01_similar_others_mpfc <- extractBF(bf01_similar_others_mpfc)
+```
+
 # 2. Accuracy 
 ## 2.1. Preparation
 ```{r}
@@ -1039,6 +1108,27 @@ data_km_plt <- data_all_plt %>%
 km_sample_size <- calculate_sample_size(data_km, "self_1_km", "group")
 km_summary <- get_summary(data_km, "self_1_km", "group")
 
+summary_table <- tibble(
+	"Accuracy" = c("Self baseline km"), 
+	"Healthy controls mean (SE)" = c(paste0(specify_decimal(km_summary[["HC"]]$mean, 3), 
+															 " (", 
+															 specify_decimal(km_summary[["HC"]]$se, 3),
+															 ")")), 
+	"mPFC lesions mean (SE)" = c(paste0(specify_decimal(km_summary[["mPFC"]]$mean, 3), 
+															 " (", 
+															 specify_decimal(km_summary[["mPFC"]]$se, 3),
+															 ")")), 
+	"Lesion controls mean (SE)" = c(paste0(specify_decimal(km_summary[["LC"]]$mean, 3), 
+															 " (", 
+															 specify_decimal(km_summary[["LC"]]$se, 3),
+															 ")"))
+	)
+
+kable(summary_table, 
+      align = c("l", "c"), 
+      caption = "Summary table of self baseline km") %>% 
+	kable_styling()
+
 # ANOVA1
 km_lm_model <- lm(self_1_km ~ group, data = data_km)
 km_anova <- anova(km_lm_model)
@@ -1204,6 +1294,27 @@ data_ku_plt <- data_all_plt %>%
 ku_sample_size <- calculate_sample_size(data_ku, "self_1_ku", "group")
 ku_summary <- get_summary(data_ku, "self_1_ku", "group")
 
+summary_table <- tibble(
+	"Accuracy" = c("Self baseline ku"), 
+	"Healthy controls mean (SE)" = c(paste0(specify_decimal(ku_summary[["HC"]]$mean, 3), 
+															 " (", 
+															 specify_decimal(ku_summary[["HC"]]$se, 3),
+															 ")")), 
+	"mPFC lesions mean (SE)" = c(paste0(specify_decimal(ku_summary[["mPFC"]]$mean, 3), 
+															 " (", 
+															 specify_decimal(ku_summary[["mPFC"]]$se, 3),
+															 ")")), 
+	"Lesion controls mean (SE)" = c(paste0(specify_decimal(ku_summary[["LC"]]$mean, 3), 
+															 " (", 
+															 specify_decimal(ku_summary[["LC"]]$se, 3),
+															 ")"))
+	)
+
+kable(summary_table, 
+      align = c("l", "c"), 
+      caption = "Summary table of self baseline ku") %>% 
+	kable_styling()
+
 # ANOVA1
 ku_lm_model <- lm(self_1_ku ~ group, data = data_ku)
 ku_anova <- anova(ku_lm_model)
@@ -1341,7 +1452,135 @@ if (is_save == 1) {
 }
 ```
 
-# 5. Signed KL divergence ($D_{KL}$)
+# 5. Signed KL divergence (D<sub>KL</sub>)
+## 5.1. Preparation 
 
+```{r}
+#| label: kld 
+#| echo: false 
+#| warning: false 
 
-# Lesion analysis 
+# Preparation for modelling
+data_kld_i <- data_all %>% 
+	dplyr::select(id, group, self_1_km, self_1_ku, norm_kl_i) %>% 
+	mutate(other_pref = "i") %>% 
+	dplyr::rename(norm_kl = norm_kl_i)
+
+data_kld_p <- data_all %>% 
+	dplyr::select(id, group, self_1_km, self_1_ku, norm_kl_p) %>% 
+	mutate(other_pref = "p") %>% 
+	dplyr::rename(norm_kl = norm_kl_p)
+
+data_kld <- bind_rows(data_kld_i, data_kld_p) %>% 
+	arrange(group, id, other_pref) %>% 
+	mutate(other_pref = factor(other_pref, 
+														 levels = c("i", "p"), 
+														 labels = c("impulsive", "patient"),
+														 ordered = FALSE)) %>% 
+	mutate(condition1 = interaction(group, other_pref, sep = ":"))
+
+rm(data_kld_i, data_kld_p)
+
+# Centring the baseline km
+self_1_km_grand_mean <- data_kld %>% 
+	summarise(mean = mean(self_1_km)) %>% 
+	as.numeric() 
+
+data_kld <- data_kld %>%
+	mutate(centred_self_1_km = self_1_km - self_1_km_grand_mean)
+
+# Centring the baseline ku
+self_1_ku_grand_mean <- data_kld %>% 
+	summarise(mean = mean(self_1_ku)) %>% 
+	as.numeric() 
+
+data_kld <- data_kld %>%
+	mutate(centred_self_1_ku = self_1_ku - self_1_ku_grand_mean)
+
+# Sum-to-zero coding
+contrasts(data_kld$other_pref) <- c(-1, 1) 
+
+# Preparation for plotting
+data_kld_plt_i <- data_all_plt %>% 
+	dplyr::select(id, group, self_1_km, self_1_ku, norm_kl_i) %>% 
+	mutate(other_pref = "i") %>% 
+	dplyr::rename(norm_kl = norm_kl_i)
+
+data_kld_plt_p <- data_all_plt %>% 
+	dplyr::select(id, group, self_1_km, self_1_ku, norm_kl_p) %>% 
+	mutate(other_pref = "p") %>% 
+	dplyr::rename(norm_kl = norm_kl_p)
+
+data_kld_plt <- bind_rows(data_kld_plt_i, data_kld_plt_p) %>% 
+	arrange(group, id, other_pref) %>% 
+	mutate(other_pref = factor(other_pref, 
+														 levels = c("i", "p"), 
+														 labels = c("impulsive", "patient"),
+														 ordered = FALSE)) %>% 
+	mutate(condition1 = interaction(group, other_pref, sep = ":"))
+
+rm(data_kld_plt_i, data_kld_plt_p)
+```
+
+## 5.2. Descriptive 
+
+```{r}
+#| label: kld_descriptive 
+#| echo: false 
+#| warning: false 
+
+# Summary
+kld_sample_size <- calculate_sample_size(data_kld, "norm_kl", "condition1")
+kld_summary <- get_summary(data_kld, "norm_kl", "condition1")
+
+summary_table <- tibble(
+	"Signed KL divergence" = c("Impulsive Other", "Patient Other"), 
+	"Healthy controls mean (SE)" = c(paste0(specify_decimal(kld_summary[["HC:impulsive"]]$mean, 3), 
+															 " (", 
+															 specify_decimal(kld_summary[["HC:impulsive"]]$se, 3),
+															 ")"),
+																paste0(specify_decimal(kld_summary[["HC:patient"]]$mean, 3), 
+															 " (", 
+															 specify_decimal(kld_summary[["HC:patient"]]$se, 3),
+															 ")")), 
+	"mPFC lesions mean (SE)" = c(paste0(specify_decimal(kld_summary[["mPFC:impulsive"]]$mean, 3), 
+															 " (", 
+															 specify_decimal(kld_summary[["mPFC:impulsive"]]$se, 3),
+															 ")"),
+																paste0(specify_decimal(kld_summary[["mPFC:patient"]]$mean, 3), 
+															 " (", 
+															 specify_decimal(kld_summary[["mPFC:patient"]]$se, 3),
+															 ")")), 
+	"Lesion controls mean (SE)" = c(paste0(specify_decimal(kld_summary[["LC:impulsive"]]$mean, 3), 
+															 " (", 
+															 specify_decimal(kld_summary[["LC:impulsive"]]$se, 3),
+															 ")"),
+																paste0(specify_decimal(kld_summary[["LC:patient"]]$mean, 3), 
+															 " (", 
+															 specify_decimal(kld_summary[["LC:patient"]]$se, 3),
+															 ")"))
+	)
+
+kable(summary_table, 
+      align = c("l", "c", "c"), 
+      caption = "Summary table of signed KL divergence") %>% 
+	kable_styling()
+```
+
+## 5.3. Linear mixed-effects models LMM3a-3e (**Tables S3-S4**)
+
+```{r}
+#| label: kld_lmm 
+#| echo: false 
+#| warning: false 
+
+# LMM3a
+# LMM3b
+# LMM3c
+# LMM3d
+# LMM3e 
+```
+
+# 6. Lesion analysis 
+
+## Lesion size (something)
