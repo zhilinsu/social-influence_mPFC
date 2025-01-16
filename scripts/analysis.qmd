@@ -1895,7 +1895,8 @@ data_acc_kld <- data_acc |>
 # Healthy controls impulsive ----
 data_acc_kld_hc_i <- data_acc_kld |> 
 	dplyr::filter(group == "HC") |> 
-	dplyr::filter(other_pref == "impulsive")
+	dplyr::filter(other_pref == "impulsive") |> 
+	dplyr::filter(!is.na(group) & !is.na(other_pref))
 
 corr_acc_kld_hc_i <- rcorr(data_acc_kld_hc_i$acc, 
 													 data_acc_kld_hc_i$norm_kl, 
@@ -1906,8 +1907,8 @@ corr_acc_kld_hc_i_ci <- psych::corr.test(data_acc_kld_hc_i$acc,
 																				 method = "spearman")
 
 set.seed(1213)
-rho_samples <- spearmanGibbsSampler(xVals = data_acc_kld_hc_i$acc,
-																		yVals = data_acc_kld_hc_i$norm_kl)
+rho_samples <- spearmanGibbsSampler(data_acc_kld_hc_i$acc,
+																		data_acc_kld_hc_i$norm_kl)
 
 bf10 <- computeBayesFactorOneZero(rho_samples$rhoSamples,
 																	whichTest = "Spearman",
@@ -1926,30 +1927,21 @@ corr_acc_kld_hc_p_ci <- psych::corr.test(data_acc_kld_hc_p$acc,
 																				 data_acc_kld_hc_p$norm_kl,
 																				 method = "spearman")
 
-set.seed(1213)
-rho_samples <- spearmanGibbsSampler(xVals = data_acc_kld_hc_p$acc,
-																		yVals = data_acc_kld_hc_p$norm_kl)
-
-bf10 <- computeBayesFactorOneZero(rho_samples$rhoSamples,
-																	whichTest = "Spearman",
-																	priorParameter = 1)
-bf01 <- 1 / bf10
 
 # mPFC lesions impulsive
 data_acc_kld_mpfc_i <- data_acc_kld |> 
 	dplyr::filter(group == "mPFC") |> 
-	dplyr::filter(other_pref == "impulsive")
+	dplyr::filter(other_pref == "impulsive") |> 
+	dplyr::filter(!is.na(group) & !is.na(other_pref))
 
-set.seed(1213)
-rho_samples <- spearmanGibbsSampler(xVals = data_acc_kld_mpfc_i$acc,
-																		yVals = data_acc_kld_mpfc_i$norm_kl)
+# mPFC lesions patient
+data_acc_kld_mpfc_p <- data_acc_kld |> 
+	dplyr::filter(group == "mPFC") |> 
+	dplyr::filter(other_pref == "patient") |> 
+	dplyr::filter(!is.na(group) & !is.na(other_pref))
 
-bf10 <- computeBayesFactorOneZero(rho_samples$rhoSamples,
-																	whichTest = "Spearman",
-																	priorParameter = 1)
-bf01 <- 1 / bf10
+# Lesion controls impulsive 
 
-# Lesion controls 
 ```
 
 ## 6.2. Perceived similarity vs Signed KL divergence (**Table S6**)
