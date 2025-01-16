@@ -121,25 +121,25 @@ qnr <- read_csv("data/questionnaires.csv") |>
 								SD_similar_p1, SD_similar_p2) |>   
 	mutate(id = if_else(id == 2012, 299, id))
 
-inclusion_data <- demogr %>%
-	left_join(qnr, by = "id") %>% 
+inclusion_data <- demogr |>
+	left_join(qnr, by = "id") |> 
 	filter(!id %in% excl_id)
 
-inclusion_data <- inclusion_data %>% 
-	filter(group == 3 | group == 4 | (group == 1 & age >= 24 & age <= 76)) %>% 
+inclusion_data <- inclusion_data |> 
+	filter(group == 3 | group == 4 | (group == 1 & age >= 24 & age <= 76)) |> 
 	filter(group == 3 | group == 4 | (group == 1 & trail_b > 40))
 
 # IDs that are included 
-incl_id_hc <- inclusion_data %>%
-	filter(group == 1) %>%
+incl_id_hc <- inclusion_data |>
+	filter(group == 1) |>
 	pull(id)
 
-incl_id_mpfc <- inclusion_data %>%
-	filter(group == 3) %>%
+incl_id_mpfc <- inclusion_data |>
+	filter(group == 3) |>
 	pull(id)
 
-incl_id_lc <- inclusion_data %>%
-	filter(group == 4) %>%
+incl_id_lc <- inclusion_data |>
+	filter(group == 4) |>
 	pull(id)
 
 if (is_save == 1) {
@@ -180,13 +180,13 @@ other_k <- rbind(k_hc, k_mpfc, k_lc)
 rm(sd_hc, sd_mpfc, sd_lc, k_hc, k_mpfc, k_lc)
 
 # Convert data type 
-other_k <- other_k %>%
-	as_tibble() %>%
+other_k <- other_k |>
+	as_tibble() |>
 	mutate(id = as.numeric(id), 
 				 other1_k = as.numeric(other1_k), 
 				 other2_k = as.numeric(other2_k), 
 				 other1_pref = as.factor(other1_pref), 
-				 other2_pref = as.factor(other2_pref)) %>%
+				 other2_pref = as.factor(other2_pref)) |>
 	# Pre-process the order of others 
 	mutate(other_i_k = if_else(other1_pref == "i", other1_k, other2_k), 
 				 other_p_k = if_else(other1_pref == "p", other1_k, other2_k))
@@ -199,7 +199,7 @@ incl_id <- c(incl_id_hc, incl_id_mpfc, incl_id_lc)
 
 incl_condition <- sd_data[1, "id", ] %in% incl_id 
 sd_data <- sd_data[,, incl_condition]
-other_k <- other_k %>% 
+other_k <- other_k |> 
 	filter(id %in% incl_id)
 
 # Extract metadata 
@@ -279,16 +279,16 @@ for (o_block in c("i", "p")) {
 }
 
 # ~~~~ DEMOGRAPHICS ~~~~ ---- 
-demogr <- read_csv("data/demographics.csv") %>%
-	rename(id = ID_Code, group = `Group SD mPFC`, age = Age, gender = Gender) %>% 
-	dplyr::select(id, group, age, gender) %>%
-	mutate(id = if_else(id == 2012, 299, id)) %>% 
-	filter(id < 600) %>%
-	filter(id %in% incl_id) %>%
+demogr <- read_csv("data/demographics.csv") |>
+	rename(id = ID_Code, group = `Group SD mPFC`, age = Age, gender = Gender) |> 
+	dplyr::select(id, group, age, gender) |>
+	mutate(id = if_else(id == 2012, 299, id)) |> 
+	filter(id < 600) |>
+	filter(id %in% incl_id) |>
 	arrange(group, id) 
 
 # ~~~~ QUESTIONNAIRES ~~~~ ---- 
-qnr <- read_csv("data/questionnaires.csv") %>% 
+qnr <- read_csv("data/questionnaires.csv") |> 
 	rename(id = ID_Code, 
 				 iq = WTAW_Standard, 
 				 trail_a = `Trail_Making_A_(seconds)'`, 
@@ -298,12 +298,12 @@ qnr <- read_csv("data/questionnaires.csv") %>%
 				 ami_sm = AMI_SM, 
 				 ami_es = AMI_ES, 
 				 bdi_total = BDI_total, 
-				 edu = Education_years) %>% 
+				 edu = Education_years) |> 
 	dplyr::select(id, iq, trail_a, trail_b, ami_total, ami_ba, ami_sm, ami_es, bdi_total, edu,
-								SD_similar_p1, SD_similar_p2) %>% 
-	mutate(id = if_else(id == 2012, 299, id)) %>% 
-	filter(id < 600) %>% 
-	filter(id %in% incl_id) %>% 
+								SD_similar_p1, SD_similar_p2) |> 
+	mutate(id = if_else(id == 2012, 299, id)) |> 
+	filter(id < 600) |> 
+	filter(id %in% incl_id) |> 
 	mutate(iq = as.numeric(iq), 
 				 trail_a = replace(trail_a, is.nan(trail_a), NA),
 				 trail_b = replace(trail_b, is.nan(trail_b), NA), 
@@ -327,18 +327,18 @@ kld_lc <- result_tb
 rm(result_tb)
 
 ## Merge tables 
-kld <- rbind(kld_hc, kld_mpfc, kld_lc) %>%
+kld <- rbind(kld_hc, kld_mpfc, kld_lc) |>
 	filter(id %in% incl_id) # exclude participants 
 
 rm(kld_hc, kld_mpfc, kld_lc)
 
 # ~~~~ MERGING ~~~~ ---- 
-data_all <- demogr %>% 
-	left_join(qnr, by = "id") %>% 
-	left_join(acc_tb, by = "id") %>% 
-	left_join(other_k, by = "id") %>% 
-	left_join(kld, by = "id") %>%
-	mutate(group = as.factor(group)) %>%
+data_all <- demogr |> 
+	left_join(qnr, by = "id") |> 
+	left_join(acc_tb, by = "id") |> 
+	left_join(other_k, by = "id") |> 
+	left_join(kld, by = "id") |>
+	mutate(group = as.factor(group)) |>
 	filter(!id %in% excl_id)
 ```
 
@@ -383,14 +383,14 @@ for (i_id in 1:n_pt) {
 
 # ~~~~ FACTOR LEVELS ~~~~ ---- 
 ## For plotting, the order is: HC, mPFC, LC
-data_all_plt <- data_all %>%
+data_all_plt <- data_all |>
 	mutate(group = factor(group, 
 												levels = c(1, 3, 4), 
 												labels = c("HC", "mPFC", "LC"), 
 												ordered = FALSE))
 
 ## For modelling, the order is: mPFC, HC, LC
-data_all <- data_all %>%
+data_all <- data_all |>
 	mutate(group = factor(group, 
 												levels = c(3, 1, 4), 
 												labels = c("mPFC", "HC", "LC"), 
@@ -437,12 +437,12 @@ r_squared <- summary(lm_model)$r.squared
 adjusted_r_squared <- summary(lm_model)$adj.r.squared
 
 kable(lm_model_stats, align = rep("c", 6),
-			caption = "Linear regression for age") %>%
+			caption = "Linear regression for age") |>
 	footnote(general = paste("R <sup>2</sup> / Adjusted R <sup>2</sup>:",
 													 pvalr(r_squared, html = TRUE), "/", 
 													 pvalr(adjusted_r_squared, html = TRUE)),
 					 general_title = "",
-           escape = FALSE) %>%
+           escape = FALSE) |>
 	kable_styling()
 
 # Gender
@@ -450,8 +450,8 @@ demogr_female <- calculate_females(data_all, "group")
 chisq_test(data_all$gender, data_all$group)
 
 ## Logistic regression
-data_gender <- data_all %>%
-	dplyr::select(id, group, gender) %>% 
+data_gender <- data_all |>
+	dplyr::select(id, group, gender) |> 
 	mutate(bi_gender = gender - 1)
 
 logit_model <- glm(bi_gender ~ group, family = binomial(link = "logit"), data = data_gender)
@@ -461,7 +461,7 @@ row.names(logit_model_stats) <- c("Intercept",
 																	"Group (LC vs mPFC)")
 
 kable(logit_model_stats, align = rep("c", 6),
-			caption = "Binary logistic regression for gender") %>%
+			caption = "Binary logistic regression for gender") |>
 	kable_styling()
 ```
 
@@ -487,12 +487,12 @@ r_squared <- summary(lm_model)$r.squared
 adjusted_r_squared <- summary(lm_model)$adj.r.squared
 
 kable(lm_model_stats, align = rep("c", 6),
-			caption = "Linear regression for education years") %>%
+			caption = "Linear regression for education years") |>
 	footnote(general = paste("R <sup>2</sup> / Adjusted R <sup>2</sup>:",
 													 pvalr(r_squared, html = TRUE), "/", 
 													 pvalr(adjusted_r_squared, html = TRUE)),
 					 general_title = "",
-           escape = FALSE) %>%
+           escape = FALSE) |>
 	kable_styling()
 ```
 
@@ -518,12 +518,12 @@ r_squared <- summary(lm_model)$r.squared
 adjusted_r_squared <- summary(lm_model)$adj.r.squared
 
 kable(lm_model_stats, align = rep("c", 6),
-			caption = "Linear regression for AMI total") %>%
+			caption = "Linear regression for AMI total") |>
 	footnote(general = paste("R <sup>2</sup> / Adjusted R <sup>2</sup>:",
 													 pvalr(r_squared, html = TRUE), "/", 
 													 pvalr(adjusted_r_squared, html = TRUE)),
 					 general_title = "",
-           escape = FALSE) %>%
+           escape = FALSE) |>
 	kable_styling()
 ```
 
@@ -549,12 +549,12 @@ r_squared <- summary(lm_model)$r.squared
 adjusted_r_squared <- summary(lm_model)$adj.r.squared
 
 kable(lm_model_stats, align = rep("c", 6),
-			caption = "Linear regression for BDI") %>%
+			caption = "Linear regression for BDI") |>
 	footnote(general = paste("R <sup>2</sup> / Adjusted R <sup>2</sup>:",
 													 pvalr(r_squared, html = TRUE), "/", 
 													 pvalr(adjusted_r_squared, html = TRUE)),
 					 general_title = "",
-           escape = FALSE) %>%
+           escape = FALSE) |>
 	kable_styling()
 ```
 
@@ -581,12 +581,12 @@ r_squared <- summary(lm_model)$r.squared
 adjusted_r_squared <- summary(lm_model)$adj.r.squared
 
 kable(lm_model_stats, align = rep("c", 6),
-			caption = "Linear regression for Trail Making Test A") %>%
+			caption = "Linear regression for Trail Making Test A") |>
 	footnote(general = paste("R <sup>2</sup> / Adjusted R <sup>2</sup>:",
 													 pvalr(r_squared, html = TRUE), "/", 
 													 pvalr(adjusted_r_squared, html = TRUE)),
 					 general_title = "",
-           escape = FALSE) %>%
+           escape = FALSE) |>
 	kable_styling()
 
 # Trail B
@@ -605,12 +605,12 @@ r_squared <- summary(lm_model)$r.squared
 adjusted_r_squared <- summary(lm_model)$adj.r.squared
 
 kable(lm_model_stats, align = rep("c", 6),
-			caption = "Linear regression for Trail Making Test B") %>%
+			caption = "Linear regression for Trail Making Test B") |>
 	footnote(general = paste("R <sup>2</sup> / Adjusted R <sup>2</sup>:",
 													 pvalr(r_squared, html = TRUE), "/", 
 													 pvalr(adjusted_r_squared, html = TRUE)),
 					 general_title = "",
-           escape = FALSE) %>%
+           escape = FALSE) |>
 	kable_styling()
 ```
 
@@ -622,19 +622,19 @@ kable(lm_model_stats, align = rep("c", 6),
 #| warning: false 
 
 # Preparation 
-data_similar_1 <- data_all %>% 
-	dplyr::select(id, group, SD_similar_p1, other1_pref) %>%
+data_similar_1 <- data_all |> 
+	dplyr::select(id, group, SD_similar_p1, other1_pref) |>
 	rename(sd_similar = SD_similar_p1, 
-				 other_pref = other1_pref) %>% 
+				 other_pref = other1_pref) |> 
 	mutate(condition = interaction(group, other_pref, sep = ":"))
 
-data_similar_2 <- data_all %>% 
-	dplyr::select(id, group, SD_similar_p2, other2_pref) %>% 
+data_similar_2 <- data_all |> 
+	dplyr::select(id, group, SD_similar_p2, other2_pref) |> 
 	rename(sd_similar = SD_similar_p2, 
-				 other_pref = other2_pref) %>% 
+				 other_pref = other2_pref) |> 
 	mutate(condition = interaction(group, other_pref, sep = ":"))
 
-data_similar <- rbind(data_similar_1, data_similar_2) %>%
+data_similar <- rbind(data_similar_1, data_similar_2) |>
 	arrange(id, other_pref)
 
 rm(data_similar_1, data_similar_2)
@@ -648,18 +648,18 @@ lmer_model <- lmer(sd_similar ~ 1 + group * other_pref + (1|id),
 
 similar_lmer_table_full <- model_parameters(lmer_model)
 
-similar_lmer_table <- similar_lmer_table_full %>%
-	filter(Effects == "fixed") %>% 
-	dplyr::select(!c(df_error, Effects, Group, CI)) %>%
-	mutate(Parameter = str_replace(Parameter, pattern = "groupmPFC", replacement = "Group (mPFC)")) %>%
-	mutate(Parameter = str_replace(Parameter, pattern = "groupHC", replacement = "Group (HC)")) %>%
-	mutate(Parameter = str_replace(Parameter, pattern = "groupLC", replacement = "Group (LC)")) %>%
+similar_lmer_table <- similar_lmer_table_full |>
+	filter(Effects == "fixed") |> 
+	dplyr::select(!c(df_error, Effects, Group, CI)) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "groupmPFC", replacement = "Group (mPFC)")) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "groupHC", replacement = "Group (HC)")) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "groupLC", replacement = "Group (LC)")) |>
 	mutate(Parameter = str_replace(Parameter, pattern = "other_pref1", replacement = "Others (patient)"))
 	
 print(similar_lmer_table)
 
 # Linear regression 
-data_similar_mpfc <- data_similar %>%
+data_similar_mpfc <- data_similar |>
 	filter(group == "mPFC")
 
 similar_lm_model_mpfc <- lm(sd_similar ~ other_pref, data = data_similar_mpfc)
@@ -667,11 +667,11 @@ similar_lm_model_mpfc <- lm(sd_similar ~ other_pref, data = data_similar_mpfc)
 result_similar_lm_model_mpfc <- model_parameters(similar_lm_model_mpfc)
 
 # Bayes factor 
-data_similar_bayes <- data_similar %>%
-	mutate(id = as.factor(id)) %>% 
+data_similar_bayes <- data_similar |>
+	mutate(id = as.factor(id)) |> 
 	filter(!is.na(sd_similar))
 
-data_similar_bayes_mpfc <- data_similar_bayes %>%
+data_similar_bayes_mpfc <- data_similar_bayes |>
 	filter(group == "mPFC")
 
 # BF_01 for differences between impulsive and patient others (for mPFC)
@@ -691,25 +691,25 @@ bf01_similar_others_mpfc <- extractBF(bf01_similar_others_mpfc)
 #| warning: false
 
 # Preparation 
-data_acc_1 <- data_all %>% 
-	dplyr::select(id, group, acc_i) %>% 
-	rename(acc = acc_i) %>% 
+data_acc_1 <- data_all |> 
+	dplyr::select(id, group, acc_i) |> 
+	rename(acc = acc_i) |> 
 	mutate(other_pref = "i", 
 				 other_pref = as.factor(other_pref)) 
 
-data_acc_2 <- data_all %>% 
-	dplyr::select(id, group, acc_p) %>% 
-	rename(acc = acc_p) %>% 
+data_acc_2 <- data_all |> 
+	dplyr::select(id, group, acc_p) |> 
+	rename(acc = acc_p) |> 
 	mutate(other_pref = "p", 
 				 other_pref = as.factor(other_pref)) 
 
-data_acc <- rbind(data_acc_1, data_acc_2) %>%
-	mutate(acc = acc * 100) %>%
+data_acc <- rbind(data_acc_1, data_acc_2) |>
+	mutate(acc = acc * 100) |>
 	mutate(other_pref = factor(other_pref, 
 														 levels = c("i", "p"), 
 														 labels = c("impulsive", "patient"),
-														 ordered = FALSE)) %>%
-	mutate(condition1 = interaction(group, other_pref, sep = ":")) %>%
+														 ordered = FALSE)) |>
+	mutate(condition1 = interaction(group, other_pref, sep = ":")) |>
 	arrange(id, other_pref)
 
 rm(data_acc_1, data_acc_2)
@@ -718,25 +718,25 @@ rm(data_acc_1, data_acc_2)
 contrasts(data_acc$other_pref) <- c(-1, 1)
 
 # Preparation for plotting
-data_acc_plt_1 <- data_all_plt %>% 
-	dplyr::select(id, group, acc_i) %>% 
-	rename(acc = acc_i) %>% 
+data_acc_plt_1 <- data_all_plt |> 
+	dplyr::select(id, group, acc_i) |> 
+	rename(acc = acc_i) |> 
 	mutate(other_pref = "i", 
 				 other_pref = as.factor(other_pref)) 
 
-data_acc_plt_2 <- data_all_plt %>% 
-	dplyr::select(id, group, acc_p) %>% 
-	rename(acc = acc_p) %>% 
+data_acc_plt_2 <- data_all_plt |> 
+	dplyr::select(id, group, acc_p) |> 
+	rename(acc = acc_p) |> 
 	mutate(other_pref = "p", 
 				 other_pref = as.factor(other_pref)) 
 
-data_acc_plt <- rbind(data_acc_plt_1, data_acc_plt_2) %>%
-	mutate(acc = acc * 100) %>%
+data_acc_plt <- rbind(data_acc_plt_1, data_acc_plt_2) |>
+	mutate(acc = acc * 100) |>
 	mutate(other_pref = factor(other_pref, 
 														 levels = c("i", "p"), 
 														 labels = c("impulsive", "patient"),
-														 ordered = FALSE)) %>%
-	mutate(condition1 = interaction(group, other_pref, sep = ":")) %>%
+														 ordered = FALSE)) |>
+	mutate(condition1 = interaction(group, other_pref, sep = ":")) |>
 	arrange(id, other_pref)
 
 rm(data_acc_plt_1, data_acc_plt_2)
@@ -783,22 +783,22 @@ summary_table <- tibble(
 
 kable(summary_table, 
       align = c("l", "c", "c"), 
-      caption = "Summary table of learning accuracy") %>% 
+      caption = "Summary table of learning accuracy") |> 
 	kable_styling()
 
 # Binomial test
 ## HC - impulsive 
-acc_hc_impulsive_all <- data_acc %>%
-	filter(group == "HC" & other_pref == "impulsive") %>% 
-	filter(!is.na(acc)) %>%
-	count() %>% 
+acc_hc_impulsive_all <- data_acc |>
+	filter(group == "HC" & other_pref == "impulsive") |> 
+	filter(!is.na(acc)) |>
+	count() |> 
 	pull(n)
 
-acc_hc_impulsive_above50 <- data_acc %>%
-	filter(group == "HC" & other_pref == "impulsive") %>% 
-	filter(!is.na(acc)) %>%
-	filter(acc > 50) %>% 
-	count() %>% 
+acc_hc_impulsive_above50 <- data_acc |>
+	filter(group == "HC" & other_pref == "impulsive") |> 
+	filter(!is.na(acc)) |>
+	filter(acc > 50) |> 
+	count() |> 
 	pull(n)
 
 acc_ha_impulsive_binom <- binom.test(x = acc_hc_impulsive_above50, 
@@ -806,17 +806,17 @@ acc_ha_impulsive_binom <- binom.test(x = acc_hc_impulsive_above50,
 																		 p = 0.5, alternative = "greater")
 
 ## mPFC - impulsive
-acc_mpfc_impulsive_all <- data_acc %>%
-	filter(group == "mPFC" & other_pref == "impulsive") %>% 
-	filter(!is.na(acc)) %>%
-	count() %>% 
+acc_mpfc_impulsive_all <- data_acc |>
+	filter(group == "mPFC" & other_pref == "impulsive") |> 
+	filter(!is.na(acc)) |>
+	count() |> 
 	pull(n)
 
-acc_mpfc_impulsive_above50 <- data_acc %>%
-	filter(group == "mPFC" & other_pref == "impulsive") %>% 
-	filter(!is.na(acc)) %>%
-	filter(acc > 50) %>% 
-	count() %>% 
+acc_mpfc_impulsive_above50 <- data_acc |>
+	filter(group == "mPFC" & other_pref == "impulsive") |> 
+	filter(!is.na(acc)) |>
+	filter(acc > 50) |> 
+	count() |> 
 	pull(n)
 
 acc_mpfc_impulsive_binom <- binom.test(x = acc_mpfc_impulsive_above50,
@@ -824,17 +824,17 @@ acc_mpfc_impulsive_binom <- binom.test(x = acc_mpfc_impulsive_above50,
 																			 p = 0.5, alternative = "greater")
 
 ## LC - impulsive 
-acc_lc_impulsive_all <- data_acc %>%
-	filter(group == "LC" & other_pref == "impulsive") %>% 
-	filter(!is.na(acc)) %>%
-	count() %>% 
+acc_lc_impulsive_all <- data_acc |>
+	filter(group == "LC" & other_pref == "impulsive") |> 
+	filter(!is.na(acc)) |>
+	count() |> 
 	pull(n)
 
-acc_lc_impulsive_above50 <- data_acc %>%
-	filter(group == "LC" & other_pref == "impulsive") %>% 
-	filter(!is.na(acc)) %>%
-	filter(acc > 50) %>% 
-	count() %>% 
+acc_lc_impulsive_above50 <- data_acc |>
+	filter(group == "LC" & other_pref == "impulsive") |> 
+	filter(!is.na(acc)) |>
+	filter(acc > 50) |> 
+	count() |> 
 	pull(n)
 
 acc_lc_impulsive_binom <- binom.test(x = acc_lc_impulsive_above50,
@@ -842,17 +842,17 @@ acc_lc_impulsive_binom <- binom.test(x = acc_lc_impulsive_above50,
 																		 p = 0.5, alternative = "greater")
 
 ## HC - patient 
-acc_hc_patient_all <- data_acc %>%
-	filter(group == "HC" & other_pref == "patient") %>% 
-	filter(!is.na(acc)) %>%
-	count() %>% 
+acc_hc_patient_all <- data_acc |>
+	filter(group == "HC" & other_pref == "patient") |> 
+	filter(!is.na(acc)) |>
+	count() |> 
 	pull(n)
 
-acc_hc_patient_above50 <- data_acc %>%
-	filter(group == "HC" & other_pref == "patient") %>% 
-	filter(!is.na(acc)) %>%
-	filter(acc > 50) %>% 
-	count() %>% 
+acc_hc_patient_above50 <- data_acc |>
+	filter(group == "HC" & other_pref == "patient") |> 
+	filter(!is.na(acc)) |>
+	filter(acc > 50) |> 
+	count() |> 
 	pull(n)
 
 acc_ha_patient_binom <- binom.test(x = acc_hc_patient_above50,
@@ -860,17 +860,17 @@ acc_ha_patient_binom <- binom.test(x = acc_hc_patient_above50,
 																	 p = 0.5, alternative = "greater")
 
 ## mPFC - patient
-acc_mpfc_patient_all <- data_acc %>%
-	filter(group == "mPFC" & other_pref == "patient") %>% 
-	filter(!is.na(acc)) %>%
-	count() %>% 
+acc_mpfc_patient_all <- data_acc |>
+	filter(group == "mPFC" & other_pref == "patient") |> 
+	filter(!is.na(acc)) |>
+	count() |> 
 	pull(n)
 
-acc_mpfc_patient_above50 <- data_acc %>%
-	filter(group == "mPFC" & other_pref == "patient") %>% 
-	filter(!is.na(acc)) %>%
-	filter(acc > 50) %>% 
-	count() %>% 
+acc_mpfc_patient_above50 <- data_acc |>
+	filter(group == "mPFC" & other_pref == "patient") |> 
+	filter(!is.na(acc)) |>
+	filter(acc > 50) |> 
+	count() |> 
 	pull(n)
 
 acc_mpfc_patient_binom <- binom.test(x = acc_mpfc_patient_above50,
@@ -878,17 +878,17 @@ acc_mpfc_patient_binom <- binom.test(x = acc_mpfc_patient_above50,
 																		 p = 0.5, alternative = "greater")
 
 ## LC - patient  
-acc_lc_patient_all <- data_acc %>%
-	filter(group == "LC" & other_pref == "patient") %>% 
-	filter(!is.na(acc)) %>%
-	count() %>% 
+acc_lc_patient_all <- data_acc |>
+	filter(group == "LC" & other_pref == "patient") |> 
+	filter(!is.na(acc)) |>
+	count() |> 
 	pull(n)
 
-acc_lc_patient_above50 <- data_acc %>%
-	filter(group == "LC" & other_pref == "patient") %>% 
-	filter(!is.na(acc)) %>%
-	filter(acc > 50) %>% 
-	count() %>% 
+acc_lc_patient_above50 <- data_acc |>
+	filter(group == "LC" & other_pref == "patient") |> 
+	filter(!is.na(acc)) |>
+	filter(acc > 50) |> 
+	count() |> 
 	pull(n)
 
 acc_lc_patient_binom <- binom.test(x = acc_lc_patient_above50,
@@ -908,11 +908,11 @@ lmer_model <- lmer(acc ~ 1 + group * other_pref + (1|id), data = data_acc)
 
 acc_lmer_table_full <- model_parameters(lmer_model)
 
-acc_lmer_table <- acc_lmer_table_full %>%
-	filter(Effects == "fixed") %>% 
-	dplyr::select(!c(df_error, Effects, Group, CI)) %>%
-	mutate(Parameter = str_replace(Parameter, pattern = "groupHC", replacement = "Group (HC vs mPFC)")) %>%
-	mutate(Parameter = str_replace(Parameter, pattern = "groupLC", replacement = "Group (LC vs mPFC)")) %>%
+acc_lmer_table <- acc_lmer_table_full |>
+	filter(Effects == "fixed") |> 
+	dplyr::select(!c(df_error, Effects, Group, CI)) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "groupHC", replacement = "Group (HC vs mPFC)")) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "groupLC", replacement = "Group (LC vs mPFC)")) |>
 	mutate(Parameter = str_replace(Parameter, pattern = "other_pref1", replacement = "Others (patient vs impulsive)"))
 	
 print(acc_lmer_table)
@@ -923,47 +923,47 @@ post_hoc_acc <- contrast(emmeans(lmer_model, ~ group), "pairwise", adjust = NULL
 print(post_hoc_acc)
 
 # LMM1b (control for depression)
-data_bdi <- data_all %>%
-	dplyr::select(id, group, bdi_total) %>%
+data_bdi <- data_all |>
+	dplyr::select(id, group, bdi_total) |>
 	mutate(id = as.factor(id))
 
-data_acc <- data_acc %>%
+data_acc <- data_acc |>
 	mutate(id = as.factor(id))
 
-data_acc_bdi <- data_acc %>%
+data_acc_bdi <- data_acc |>
 	left_join(data_bdi, by = c("id", "group"))
 
 lmer_model_bdi <- lmer(acc ~ 1 + group * other_pref + bdi_total + (1|id), data = data_acc_bdi)
 
 acc_lmer_table_full_bdi <- model_parameters(lmer_model_bdi)
 
-acc_lmer_table_bdi <- acc_lmer_table_full_bdi %>%
-	filter(Effects == "fixed") %>% 
-	dplyr::select(!c(df_error, Effects, Group, CI)) %>%
-	mutate(Parameter = str_replace(Parameter, pattern = "groupHC", replacement = "Group (HC vs mPFC)")) %>%
-	mutate(Parameter = str_replace(Parameter, pattern = "groupLC", replacement = "Group (LC vs mPFC)")) %>%
+acc_lmer_table_bdi <- acc_lmer_table_full_bdi |>
+	filter(Effects == "fixed") |> 
+	dplyr::select(!c(df_error, Effects, Group, CI)) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "groupHC", replacement = "Group (HC vs mPFC)")) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "groupLC", replacement = "Group (LC vs mPFC)")) |>
 	mutate(Parameter = str_replace(Parameter, pattern = "other_pref1", replacement = "Others (patient vs impulsive)")) |> 
 	mutate(Parameter = str_replace(Parameter, pattern = "bdi_total", replacement = "BDI"))
 
 print(acc_lmer_table_bdi)
 
 # LMM1c (control for apathy)
-data_ami <- data_all %>%
-	dplyr::select(id, group, ami_total) %>%
+data_ami <- data_all |>
+	dplyr::select(id, group, ami_total) |>
 	mutate(id = as.factor(id))
 
-data_acc_ami <- data_acc %>%
+data_acc_ami <- data_acc |>
 	left_join(data_ami, by = c("id", "group"))
 
 lmer_model_ami <- lmer(acc ~ 1 + group * other_pref + ami_total + (1|id), data = data_acc_ami)
 
 acc_lmer_table_full_ami <- model_parameters(lmer_model_ami)
 
-acc_lmer_table_ami <- acc_lmer_table_full_ami %>%
-	filter(Effects == "fixed") %>% 
-	dplyr::select(!c(df_error, Effects, Group, CI)) %>%
-	mutate(Parameter = str_replace(Parameter, pattern = "groupHC", replacement = "Group (HC vs mPFC)")) %>%
-	mutate(Parameter = str_replace(Parameter, pattern = "groupLC", replacement = "Group (LC vs mPFC)")) %>%
+acc_lmer_table_ami <- acc_lmer_table_full_ami |>
+	filter(Effects == "fixed") |> 
+	dplyr::select(!c(df_error, Effects, Group, CI)) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "groupHC", replacement = "Group (HC vs mPFC)")) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "groupLC", replacement = "Group (LC vs mPFC)")) |>
 	mutate(Parameter = str_replace(Parameter, pattern = "other_pref1", replacement = "Others (patient vs impulsive)")) |> 
 	mutate(Parameter = str_replace(Parameter, pattern = "ami_total", replacement = "AMI"))
 
@@ -977,12 +977,12 @@ print(acc_lmer_table_ami)
 #| echo: false 
 #| warning: false 
 
-data_acc_bayes <- data_acc %>%
-	mutate(id = as.factor(id)) %>% 
+data_acc_bayes <- data_acc |>
+	mutate(id = as.factor(id)) |> 
 	filter(!is.na(acc))
 
-data_acc_overall_bayes <- data_acc_bayes %>% 
-	group_by(id, group) %>% 
+data_acc_overall_bayes <- data_acc_bayes |> 
+	group_by(id, group) |> 
 	summarise(mean_acc = mean(acc), .groups = "drop")
 
 # BF_01 for differences between mPFC and LC
@@ -1008,13 +1008,13 @@ bf01_acc_mpfc_lc_overall <- extractBF(bf01_acc_mpfc_lc_overall)
 # Preparation 
 vars <- "acc"
 
-plt_data <- data_acc_plt %>% 
-	group_by(group, other_pref, condition1) %>% 
-	filter(!is.na(get(vars))) %>%
+plt_data <- data_acc_plt |> 
+	group_by(group, other_pref, condition1) |> 
+	filter(!is.na(get(vars))) |>
 	summarise(n = n(), 
 						mean = mean(get(vars), na.rm = TRUE), 
 						sd = sd(get(vars), na.rm = TRUE), 
-						se = sd / sqrt(n)) %>% 
+						se = sd / sqrt(n)) |> 
 	ungroup()
 
 # ggplot for manuscript
@@ -1090,10 +1090,10 @@ if (is_save == 1) {
 #| echo: false 
 #| warning: false 
 
-data_km <- data_all %>% 
+data_km <- data_all |> 
 	dplyr::select(id, group, self_1_km)
 
-data_km_plt <- data_all_plt %>%
+data_km_plt <- data_all_plt |>
 	dplyr::select(id, group, self_1_km)
 ```
 
@@ -1126,7 +1126,7 @@ summary_table <- tibble(
 
 kable(summary_table, 
       align = c("l", "c"), 
-      caption = "Summary table of self baseline km") %>% 
+      caption = "Summary table of self baseline km") |> 
 	kable_styling()
 
 # ANOVA1
@@ -1144,8 +1144,8 @@ ci.etasqr(0.05, 0.10, 2, 118)
 emmeans(km_lm_model, pairwise ~ group, adjust = "none")
 
 # ANOVA2 (control for depression)
-data_km_bdi <- data_km %>%
-	mutate(id = as.factor(id)) %>%
+data_km_bdi <- data_km |>
+	mutate(id = as.factor(id)) |>
 	left_join(data_bdi, by = c("id", "group"))
 
 km_lm_model_bdi <- lm(self_1_km ~ bdi_total + group, data = data_km_bdi)
@@ -1158,8 +1158,8 @@ ci.etasqr(0.05, 0.09, 2, 115) # group
 ci.etasqr(0.05, 0.004, 1, 115) # bdi
 
 # ANOVA3 (control for apathy)
-data_km_ami <- data_km %>%
-	mutate(id = as.factor(id)) %>%
+data_km_ami <- data_km |>
+	mutate(id = as.factor(id)) |>
 	left_join(data_ami, by = c("id", "group"))
 
 km_lm_model_ami <- lm(self_1_km ~ ami_total + group, data = data_km_ami)
@@ -1179,8 +1179,8 @@ ci.etasqr(0.05, 0.02, 1, 115) # ami
 #| echo: false 
 #| warning: false 
 
-data_km_bayes <- data_km %>%
-	mutate(id = as.factor(id)) %>% 
+data_km_bayes <- data_km |>
+	mutate(id = as.factor(id)) |> 
 	filter(!is.na(self_1_km))
 
 # BF_01 for differences between mPFC and LC
@@ -1205,13 +1205,13 @@ bf01_km_mpfc_lc_overall <- extractBF(bf01_km_mpfc_lc_overall)
 # Preparation
 vars <- "self_1_km"
 
-plt_data <- data_km_plt %>% 
-	group_by(group) %>% 
-	filter(!is.na(get(vars))) %>%
+plt_data <- data_km_plt |> 
+	group_by(group) |> 
+	filter(!is.na(get(vars))) |>
 	summarise(n = n(), 
 						mean = mean(get(vars), na.rm = TRUE), 
 						sd = sd(get(vars), na.rm = FALSE), 
-						se = sd / sqrt(n)) %>% 
+						se = sd / sqrt(n)) |> 
 	ungroup() 
 
 # ggplot for manuscript
@@ -1276,10 +1276,10 @@ if (is_save == 1) {
 #| warning: false 
 
 # Preparation
-data_ku <- data_all %>% 
+data_ku <- data_all |> 
 	dplyr::select(id, group, self_1_ku)
 
-data_ku_plt <- data_all_plt %>%
+data_ku_plt <- data_all_plt |>
 	dplyr::select(id, group, self_1_ku)
 ```
 
@@ -1312,7 +1312,7 @@ summary_table <- tibble(
 
 kable(summary_table, 
       align = c("l", "c"), 
-      caption = "Summary table of self baseline ku") %>% 
+      caption = "Summary table of self baseline ku") |> 
 	kable_styling()
 
 # ANOVA1
@@ -1330,8 +1330,8 @@ ci.etasqr(0.05, 0.14, 2, 118)
 emmeans(ku_lm_model, pairwise ~ group, adjust = "none")
 
 # ANOVA2 (control for depression)
-data_ku_bdi <- data_ku %>%
-	mutate(id = as.factor(id)) %>%
+data_ku_bdi <- data_ku |>
+	mutate(id = as.factor(id)) |>
 	left_join(data_bdi, by = c("id", "group"))
 
 ku_lm_model_bdi <- lm(self_1_ku ~ bdi_total + group, data = data_ku_bdi)
@@ -1344,8 +1344,8 @@ ci.etasqr(0.05, 0.11, 2, 115) # group
 ci.etasqr(0.05, 0.08, 1, 115) # bdi 
 
 # ANOVA3 (control for apathy)
-data_ku_ami <- data_ku %>%
-	mutate(id = as.factor(id)) %>%
+data_ku_ami <- data_ku |>
+	mutate(id = as.factor(id)) |>
 	left_join(data_ami, by = c("id", "group"))
 
 ku_lm_model_ami <- lm(self_1_ku ~ ami_total + group, data = data_ku_ami)
@@ -1364,8 +1364,8 @@ ci.etasqr(0.05, 0.03, 1, 115) # ami
 #| echo: false 
 #| warning: false 
 
-data_ku_bayes <- data_ku %>%
-	mutate(id = as.factor(id)) %>% 
+data_ku_bayes <- data_ku |>
+	mutate(id = as.factor(id)) |> 
 	filter(!is.na(self_1_ku))
 
 # BF_01 for differences between mPFC and HC
@@ -1390,13 +1390,13 @@ bf01_ku_mpfc_hc_overall <- extractBF(bf01_ku_mpfc_hc_overall)
 # Preparation
 vars <- "self_1_ku"
 
-plt_data <- data_ku_plt %>% 
-	group_by(group) %>% 
-	filter(!is.na(get(vars))) %>%
+plt_data <- data_ku_plt |> 
+	group_by(group) |> 
+	filter(!is.na(get(vars))) |>
 	summarise(n = n(), 
 						mean = mean(get(vars), na.rm = TRUE), 
 						sd = sd(get(vars), na.rm = FALSE), 
-						se = sd / sqrt(n)) %>% 
+						se = sd / sqrt(n)) |> 
 	ungroup() 
 
 # ggplot for manuscript  
@@ -1461,62 +1461,62 @@ if (is_save == 1) {
 #| warning: false 
 
 # Preparation for modelling
-data_kld_i <- data_all %>% 
-	dplyr::select(id, group, self_1_km, self_1_ku, norm_kl_i) %>% 
-	mutate(other_pref = "i") %>% 
+data_kld_i <- data_all |> 
+	dplyr::select(id, group, self_1_km, self_1_ku, norm_kl_i) |> 
+	mutate(other_pref = "i") |> 
 	dplyr::rename(norm_kl = norm_kl_i)
 
-data_kld_p <- data_all %>% 
-	dplyr::select(id, group, self_1_km, self_1_ku, norm_kl_p) %>% 
-	mutate(other_pref = "p") %>% 
+data_kld_p <- data_all |> 
+	dplyr::select(id, group, self_1_km, self_1_ku, norm_kl_p) |> 
+	mutate(other_pref = "p") |> 
 	dplyr::rename(norm_kl = norm_kl_p)
 
-data_kld <- bind_rows(data_kld_i, data_kld_p) %>% 
-	arrange(group, id, other_pref) %>% 
+data_kld <- bind_rows(data_kld_i, data_kld_p) |> 
+	arrange(group, id, other_pref) |> 
 	mutate(other_pref = factor(other_pref, 
 														 levels = c("i", "p"), 
 														 labels = c("impulsive", "patient"),
-														 ordered = FALSE)) %>% 
+														 ordered = FALSE)) |> 
 	mutate(condition1 = interaction(group, other_pref, sep = ":"))
 
 rm(data_kld_i, data_kld_p)
 
 # Centring the baseline km
-self_1_km_grand_mean <- data_kld %>% 
-	summarise(mean = mean(self_1_km)) %>% 
+self_1_km_grand_mean <- data_kld |> 
+	summarise(mean = mean(self_1_km)) |> 
 	as.numeric() 
 
-data_kld <- data_kld %>%
+data_kld <- data_kld |>
 	mutate(centred_self_1_km = self_1_km - self_1_km_grand_mean)
 
 # Centring the baseline ku
-self_1_ku_grand_mean <- data_kld %>% 
-	summarise(mean = mean(self_1_ku)) %>% 
+self_1_ku_grand_mean <- data_kld |> 
+	summarise(mean = mean(self_1_ku)) |> 
 	as.numeric() 
 
-data_kld <- data_kld %>%
+data_kld <- data_kld |>
 	mutate(centred_self_1_ku = self_1_ku - self_1_ku_grand_mean)
 
 # Sum-to-zero coding
 contrasts(data_kld$other_pref) <- c(-1, 1) 
 
 # Preparation for plotting
-data_kld_plt_i <- data_all_plt %>% 
-	dplyr::select(id, group, self_1_km, self_1_ku, norm_kl_i) %>% 
-	mutate(other_pref = "i") %>% 
+data_kld_plt_i <- data_all_plt |> 
+	dplyr::select(id, group, self_1_km, self_1_ku, norm_kl_i) |> 
+	mutate(other_pref = "i") |> 
 	dplyr::rename(norm_kl = norm_kl_i)
 
-data_kld_plt_p <- data_all_plt %>% 
-	dplyr::select(id, group, self_1_km, self_1_ku, norm_kl_p) %>% 
-	mutate(other_pref = "p") %>% 
+data_kld_plt_p <- data_all_plt |> 
+	dplyr::select(id, group, self_1_km, self_1_ku, norm_kl_p) |> 
+	mutate(other_pref = "p") |> 
 	dplyr::rename(norm_kl = norm_kl_p)
 
-data_kld_plt <- bind_rows(data_kld_plt_i, data_kld_plt_p) %>% 
-	arrange(group, id, other_pref) %>% 
+data_kld_plt <- bind_rows(data_kld_plt_i, data_kld_plt_p) |> 
+	arrange(group, id, other_pref) |> 
 	mutate(other_pref = factor(other_pref, 
 														 levels = c("i", "p"), 
 														 labels = c("impulsive", "patient"),
-														 ordered = FALSE)) %>% 
+														 ordered = FALSE)) |> 
 	mutate(condition1 = interaction(group, other_pref, sep = ":"))
 
 rm(data_kld_plt_i, data_kld_plt_p)
@@ -1563,24 +1563,216 @@ summary_table <- tibble(
 
 kable(summary_table, 
       align = c("l", "c", "c"), 
-      caption = "Summary table of signed KL divergence") %>% 
+      caption = "Summary table of signed KL divergence") |> 
 	kable_styling()
 ```
 
 ## 5.3. Linear mixed-effects models LMM3a-3e (**Tables S3-S4**)
 
+### LMM3a (**Table S3**)
+
+```r
+lmer_model_3a <- lmer(norm_kl ~ 1 + group * other_pref * centred_self_1_km + (1|id), 
+                      data = data_kld)
+```
+
 ```{r}
-#| label: kld_lmm 
+#| label: kld_lmm3a
 #| echo: false 
 #| warning: false 
 
-# LMM3a
-# LMM3b
-# LMM3c
-# LMM3d
-# LMM3e 
+# LMM3a (Table S3) ---- 
+lmer_model_3a <- lmer(norm_kl ~ 1 + group * other_pref * centred_self_1_km + (1|id),
+											data = data_kld)
+
+kld_lmer_3a_table_full <- model_parameters(lmer_model_3a)
+
+kld_lmer_3a_table <- kld_lmer_3a_table_full |>
+	filter(Effects == "fixed") |>
+	dplyr::select(!c(df_error, Effects, Group, CI)) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "groupHC", replacement = "Group (HC)")) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "groupmPFC", replacement = "Group (mPFC)")) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "groupLC", replacement = "Group (LC)")) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "other_pref1", replacement = "Others (patient)")) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "centred_self_1_km", replacement = "Self baseline km"))
+
+print(kld_lmer_3a_table)
+
+# Post-hoc comparisons
+post_kld_3a <- contrast(emmeans(lmer_model_3a, ~ group | other_pref),
+												"pairwise", adjust = NULL)
+
+print(post_kld_3a)
+
+## Bayes factor 
+data_kld_bayes <- data_kld %>%
+	mutate(id = as.factor(id)) %>% 
+	filter(!is.na(norm_kl))
+
+data_kld_bayes_patient <- data_kld_bayes %>%
+	filter(other_pref == "patient")
+
+# BF_01 for differences between mPFC and HC (patient)
+set.seed(1213)
+bf10_kld_mpfc_hc_patient <- ttestBF(data_kld_bayes_patient$norm_kl[data_kld_bayes_patient$group == "mPFC"], 
+																		data_kld_bayes_patient$norm_kl[data_kld_bayes_patient$group == "HC"])
+
+bf01_kld_mpfc_hc_patient <- 1 / bf10_kld_mpfc_hc_patient
+bf01_kld_mpfc_hc_patient <- extractBF(bf01_kld_mpfc_hc_patient)
 ```
 
-# 6. Lesion analysis 
+### LMM3b (**Table S3**) control for depression
+
+```r
+lmer_model_3b <- lmer(norm_kl ~ 1 + group * other_pref * centred_self_1_km + bdi_total + (1|id),
+                      data = data_kld_bdi)
+```
+
+```{r}
+#| label: kld_lmm3b
+#| echo: false 
+#| warning: false 
+
+# LMM3b (control for depression; Table S3) ---- 
+data_kld_bdi <- data_kld |>
+	mutate(id = as.factor(id)) |>
+	left_join(data_bdi, by = c("id", "group"))
+
+lmer_model_3b <- lmer(norm_kl ~ 1 + group * other_pref * centred_self_1_km + bdi_total + (1|id), 
+											data = data_kld_bdi)
+
+kld_lmer_3b_table_full <- model_parameters(lmer_model_3b)
+
+kld_lmer_3b_table <- kld_lmer_3b_table_full |>
+	filter(Effects == "fixed") |>
+	dplyr::select(!c(df_error, Effects, Group, CI)) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "groupHC", replacement = "Group (HC)")) |> 
+	mutate(Parameter = str_replace(Parameter, pattern = "groupmPFC", replacement = "Group (mPFC)")) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "groupLC", replacement = "Group (LC)")) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "other_pref1", replacement = "Others (patient)")) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "centred_self_1_km", replacement = "Self baseline km")) |> 
+	mutate(Parameter = str_replace(Parameter, pattern = "bdi_total", replacement = "BDI"))
+
+print(kld_lmer_3b_table)
+```
+
+### LMM3c (**Table S3**) control for apathy
+
+```r
+lmer_model_3c <- lmer(norm_kl ~ 1 + ami_total + group * other_pref * centred_self_1_km + (1|id),
+                      data = data_kld_ami)
+```
+
+```{r}
+#| label: kld_lmm3c
+#| echo: false 
+#| warning: false 
+
+# LMM3c (control for apathy; Table S3) ---- 
+data_kld_ami <- data_kld |>
+	mutate(id = as.factor(id)) |>
+	left_join(data_ami, by = c("id", "group"))
+
+lmer_model_3c <- lmer(norm_kl ~ 1 + ami_total + group * other_pref * centred_self_1_km + (1|id), 
+											data = data_kld_ami)
+
+kld_lmer_3c_table_full <- model_parameters(lmer_model_3c)
+
+kld_lmer_3c_table <- kld_lmer_3c_table_full |>
+	filter(Effects == "fixed") |>
+	dplyr::select(!c(df_error, Effects, Group, CI)) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "groupHC", replacement = "Group (HC)")) |> 
+	mutate(Parameter = str_replace(Parameter, pattern = "groupmPFC", replacement = "Group (mPFC)")) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "groupLC", replacement = "Group (LC)")) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "other_pref1", replacement = "Others (patient)")) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "centred_self_1_km", replacement = "Self baseline km")) |> 
+	mutate(Parameter = str_replace(Parameter, pattern = "ami_total", replacement = "AMI"))
+
+print(kld_lmer_3c_table)
+```
+
+### LMM3d (**Table S4**) control for order 
+
+```r
+lmer_model_3d <- lmer(norm_kl ~ 1 + group * other_pref * centred_self_1_km + other1_pref + (1|id),
+                      data = data_kld_with_order)
+```
+
+```{r}
+#| label: kld_lmm3d
+#| echo: false 
+#| warning: false 
+
+# LMM3d (control for order; Table S4) ---- 
+other_order <- data_all |>
+	dplyr::select(id, group, other1_pref) |>
+	mutate(id = as.factor(id))
+
+data_kld_with_order <- data_kld |>
+	mutate(id = as.factor(id)) |>
+	left_join(other_order, by = c("id", "group"))
+
+lmer_model_3d <- lmer(norm_kl ~ 1 + group * other_pref * centred_self_1_km + other1_pref + (1|id), 
+											data = data_kld_with_order)
+
+kld_lmer_3d_table_full <- model_parameters(lmer_model_3d)
+
+kld_lmer_3d_table <- kld_lmer_3d_table_full |>
+	filter(Effects == "fixed") |>
+	dplyr::select(!c(df_error, Effects, Group, CI)) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "groupHC", replacement = "Group (HC)")) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "groupmPFC", replacement = "Group (mPFC)")) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "groupLC", replacement = "Group (LC)")) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "other_pref1", replacement = "Others (patient)")) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "centred_self_1_km", replacement = "Self baseline km")) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "other1_prefp", replacement = "Order of others' preferences"))
+
+print(kld_lmer_3d_table)
+```
+
+### LMM3e (**Table SX**) control for self baseline preference uncertainty
+
+```r
+lmer_model_3e <- lmer(norm_kl ~ 1 + group * other_pref * centred_self_1_km + centred_self_1_ku + (1|id),
+                      data = data_kld)
+```
+
+```{r}
+#| label: kld_lmm3e
+#| echo: false 
+#| warning: false 
+
+# LMM3e (control for self baseline preference uncertainty; Table SX) ---- 
+lmer_model_3e <- lmer(norm_kl ~ 1 + group * other_pref * centred_self_1_km + centred_self_1_ku + (1|id),
+											data = data_kld)
+
+kld_lmer_3e_table_full <- model_parameters(lmer_model_3e)
+
+kld_lmer_3e_table <- kld_lmer_3e_table_full |>
+	filter(Effects == "fixed") |>
+	dplyr::select(!c(df_error, Effects, Group, CI)) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "groupHC", replacement = "Group (HC)")) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "groupmPFC", replacement = "Group (mPFC)")) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "groupLC", replacement = "Group (LC)")) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "other_pref1", replacement = "Others (patient)")) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "centred_self_1_km", replacement = "Self baseline km")) |>
+	mutate(Parameter = str_replace(Parameter, pattern = "centred_self_1_ku", replacement = "Self baseline ku"))
+
+print(kld_lmer_3e_table)
+```
+
+# 6. Correlations
+## 6.1. Learning performances vs Signed KL divergence 
+
+## 6.2. Perceived similarity vs Signed KL divergence 
+
+## 6.3. Total lesion size vs Self baseline temporal impulsivity 
+
+## 6.4. Total lesion size vs Contrased signed KL divergence (impulsive - patient)
+
+## 6.5. Total lesion size vs Baseline preference uncertainty (within LC group)
+
+
+# 7. Lesion analysis 
 
 ## Lesion size (something)
