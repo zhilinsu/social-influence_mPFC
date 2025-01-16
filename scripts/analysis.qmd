@@ -1896,7 +1896,7 @@ data_acc_kld <- data_acc |>
 data_acc_kld_hc_i <- data_acc_kld |> 
 	dplyr::filter(group == "HC") |> 
 	dplyr::filter(other_pref == "impulsive") |> 
-	dplyr::filter(!is.na(group) & !is.na(other_pref))
+	dplyr::filter(!is.na(acc) & !is.na(norm_kl))
 
 corr_acc_kld_hc_i <- rcorr(data_acc_kld_hc_i$acc, 
 													 data_acc_kld_hc_i$norm_kl, 
@@ -1917,7 +1917,8 @@ bf01 <- 1 / bf10
 
 # Healthy controls patient ---- 
 data_acc_kld_hc_p <- data_acc_kld |> 
-	dplyr::filter(group == "HC" & other_pref == "patient")
+	dplyr::filter(group == "HC" & other_pref == "patient") |> 
+	dplyr::filter(!is.na(acc) & !is.na(norm_kl))
 
 corr_acc_kld_hc_p <- rcorr(data_acc_kld_hc_p$acc, 
 													 data_acc_kld_hc_p$norm_kl, 
@@ -1995,7 +1996,6 @@ bf10 <- computeBayesFactorOneZero(rho_samples$rhoSamples,
 																	whichTest = "Spearman",
 																	priorParameter = 1)
 bf01 <- 1 / bf10
-
 ```
 
 ## 6.2. Perceived similarity vs Signed KL divergence (**Table S6**)
