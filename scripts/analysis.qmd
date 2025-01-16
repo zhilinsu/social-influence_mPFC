@@ -1006,6 +1006,11 @@ plt <- ggplot(plt_data, aes(x = group, y = mean, group = condition1)) +
 							annotation = "**")
 
 print(plt) 
+
+if (is_save == 1) {
+	ggsave("data/plots/acc.png", plt,
+				 height = plot_h, width = plot_h * 0.85, dpi = resolution)
+}
 ```
 
 # 3. Mean of discounting distribution (*km*)
@@ -1084,6 +1089,17 @@ ci.etasqr(0.05, 0.02, 1, 115) # ami
 #| echo: false 
 #| warning: false 
 
+data_km_bayes <- data_km %>%
+	mutate(id = as.factor(id)) %>% 
+	filter(!is.na(self_1_km))
+
+# BF_01 for differences between mPFC and LC
+set.seed(1213)
+bf10_km_mpfc_lc_overall <- ttestBF(data_km_bayes$self_1_km[data_km_bayes$group == "mPFC"], 
+																	 data_km_bayes$self_1_km[data_km_bayes$group == "LC"])
+
+bf01_km_mpfc_lc_overall <- 1 / bf10_km_mpfc_lc_overall
+bf01_km_mpfc_lc_overall <- extractBF(bf01_km_mpfc_lc_overall)
 ```
 
 ## 3.4. Plot (**Figure 3b** left)
@@ -1096,10 +1112,236 @@ ci.etasqr(0.05, 0.02, 1, 115) # ami
 #| fig-width: 2.4
 #| fig-height: 4
 
+# Preparation
+vars <- "self_1_km"
 
+plt_data <- data_km_plt %>% 
+	group_by(group) %>% 
+	filter(!is.na(get(vars))) %>%
+	summarise(n = n(), 
+						mean = mean(get(vars), na.rm = TRUE), 
+						sd = sd(get(vars), na.rm = FALSE), 
+						se = sd / sqrt(n)) %>% 
+	ungroup() 
+
+# ggplot for manuscript
+set.seed(1213)
+plt <- ggplot(plt_data, aes(x = group , y = mean)) + 
+	geom_bar(aes(y = mean),
+					 fill = "#00a087", 
+					 stat = "identity",
+					 width = 0.5, linewidth = 0.3,
+					 colour = "black") +
+	geom_jitter(data = data_km_plt,
+							aes(x = group, y = get(vars)),
+							colour = "#b8eddf",
+							alpha = 0.6, 
+							position = position_jitter(height = 0,
+																				 width = 0.15), 
+							size = 1.3, stroke = 0.5,
+							show.legend = FALSE) +
+	geom_errorbar(aes(ymin = mean - se, 
+										ymax = mean + se), 
+								colour = "black", width = 0, size = 0.25) +
+	scale_x_discrete(labels = c("Healthy\ncontrols", 
+															"mPFC\nlesions", 
+															"Lesion\ncontrols")) +
+	scale_y_continuous(limits = c(-12.5, 0.5), 
+										 breaks = c(-12, -10, -8, -6, -4, -2, 0), 
+										 expan = expansion(mult = c(0, 0))) + 
+	labs(x = NULL, y = "Mean of baseline discount distribution") +
+	theme_classic() + 
+	theme(text = element_text(family = "Arial"),
+				legend.title = element_blank(),
+				legend.key = element_rect(linewidth = c(2, 2), colour = NA),
+				axis.text.x = element_text(size = 10),
+				axis.text.y = element_text(size = 10), 
+				axis.title.x = element_text(size = 10), 
+				axis.title.y = element_markdown(size = 12, lineheight = 1.2), 
+				legend.position = "none") +
+	geom_hline(yintercept = 0, linetype = "dashed") + 
+	geom_signif(xmin = 1, xmax = 2,
+							y_position = -5.5, tip_length = 0, vjust = 1.75, size = 0.25,
+							textsize = 3.5, family = "Arial",
+							annotation = "**")+
+	geom_signif(xmin = 1, xmax = 3, 
+							y_position = -6, tip_length = 0, vjust = 1.75, size = 0.25,
+							textsize = 3.5, family = "Arial",
+							annotation = "*") 
+		
+print(plt)
+
+if (is_save == 1) {
+	ggsave("data/plots/km.png", plt,
+				 height = plot_h, width = plot_h * 0.6, dpi = resolution)
+}
 ```
 
 # 4. Standard deviation of discounting distribution (*ku*)
 ## 4.1. Preparation 
+
+```{r}
+#| label: ku
+#| echo: false 
+#| warning: false 
+
+# Preparation
+data_ku <- data_all %>% 
+	dplyr::select(id, group, self_1_ku)
+
+data_ku_plt <- data_all_plt %>%
+	dplyr::select(id, group, self_1_ku)
+```
+
 ## 4.2. Descriptive 
-## 4.3. Plot (**Figure 3b** right)
+
+```{r}
+#| label: ku_descriptive 
+#| echo: false 
+#| warning: false 
+
+# Summary 
+ku_sample_size <- calculate_sample_size(data_ku, "self_1_ku", "group")
+ku_summary <- get_summary(data_ku, "self_1_ku", "group")
+
+# ANOVA1
+ku_lm_model <- lm(self_1_ku ~ group, data = data_ku)
+ku_anova <- anova(ku_lm_model)
+print(ku_anova)
+
+## Effect size 
+options(es.use_symbols = TRUE) # get nice symbols when printing 
+ku_lm_model_eta <- eta_squared(ku_lm_model)
+
+ci.etasqr(0.05, 0.14, 2, 118)
+
+## Post-hoc comparisons
+emmeans(ku_lm_model, pairwise ~ group, adjust = "none")
+
+# ANOVA2 (control for depression)
+data_ku_bdi <- data_ku %>%
+	mutate(id = as.factor(id)) %>%
+	left_join(data_bdi, by = c("id", "group"))
+
+ku_lm_model_bdi <- lm(self_1_ku ~ bdi_total + group, data = data_ku_bdi)
+
+ku_anova_bdi <- anova(ku_lm_model_bdi)
+print(ku_anova_bdi)
+
+ku_anova_bdi_eta <- eta_squared(ku_lm_model_bdi)
+ci.etasqr(0.05, 0.11, 2, 115) # group
+ci.etasqr(0.05, 0.08, 1, 115) # bdi 
+
+# ANOVA3 (control for apathy)
+data_ku_ami <- data_ku %>%
+	mutate(id = as.factor(id)) %>%
+	left_join(data_ami, by = c("id", "group"))
+
+ku_lm_model_ami <- lm(self_1_ku ~ ami_total + group, data = data_ku_ami)
+
+ku_anova_ami <- anova(ku_lm_model_ami)
+print(ku_anova_ami)
+
+ku_anova_ami_eta <- eta_squared(ku_lm_model_ami)
+ci.etasqr(0.05, 0.14, 2, 115) # group 
+ci.etasqr(0.05, 0.03, 1, 115) # ami
+```
+## 4.3. Bayes factor 
+
+```{r}
+#| label: ku_bayes 
+#| echo: false 
+#| warning: false 
+
+data_ku_bayes <- data_ku %>%
+	mutate(id = as.factor(id)) %>% 
+	filter(!is.na(self_1_ku))
+
+# BF_01 for differences between mPFC and HC
+set.seed(1213)
+bf10_ku_mpfc_hc_overall <- ttestBF(data_ku_bayes$self_1_ku[data_ku_bayes$group == "mPFC"], 
+																	 data_ku_bayes$self_1_ku[data_ku_bayes$group == "HC"])
+
+bf01_ku_mpfc_hc_overall <- 1 / bf10_ku_mpfc_hc_overall
+bf01_ku_mpfc_hc_overall <- extractBF(bf01_ku_mpfc_hc_overall)
+```
+
+## 4.4. Plot (**Figure 3b** right)
+
+```{r}
+#| label: fig-ku
+#| echo: false 
+#| warning: false 
+#| fig-cap: "Standard deviation of discounting distribution." 
+#| fig-width: 2.4
+#| fig-height: 4
+
+# Preparation
+vars <- "self_1_ku"
+
+plt_data <- data_ku_plt %>% 
+	group_by(group) %>% 
+	filter(!is.na(get(vars))) %>%
+	summarise(n = n(), 
+						mean = mean(get(vars), na.rm = TRUE), 
+						sd = sd(get(vars), na.rm = FALSE), 
+						se = sd / sqrt(n)) %>% 
+	ungroup() 
+
+# ggplot for manuscript  
+set.seed(1213)
+plt <- ggplot(plt_data, aes(x = group , y = mean)) + 
+	geom_bar(aes(y = mean),
+					 fill = "#00a087", 
+					 stat = "identity",
+					 width = 0.5, linewidth = 0.3,
+					 colour = "black") +
+	geom_jitter(data = data_ku_plt,
+							aes(x = group, y = get(vars)),
+							colour = "#b8eddf",
+							alpha = 0.6, 
+							position = position_jitter(height = 0,
+																				 width = 0.15), 
+							size = 1.3, stroke = 0.5,
+							show.legend = FALSE) +
+	geom_errorbar(aes(ymin = mean - se, 
+										ymax = mean + se), 
+								colour = "black", width = 0, size = 0.25) +
+	scale_x_discrete(labels = c("Healthy\ncontrols", 
+															"mPFC\nlesions", 
+															"Lesion\ncontrols")) +
+	scale_y_continuous(limits = c(-0.5, 4.5), 
+										 breaks = c(0, 2, 4), 
+										 expan = expansion(mult = c(0, 0))) + 
+	labs(x = NULL, y = "SD of baseline discount distribution") +
+	theme_classic() + 
+	theme(text = element_text(family = "Arial"),
+				legend.title = element_blank(),
+				legend.key = element_rect(linewidth = c(2, 2), colour = NA),
+				axis.text.x = element_text(size = 10),
+				axis.text.y = element_text(size = 10), 
+				axis.title.x = element_text(size = 10), 
+				axis.title.y = element_markdown(size = 12, lineheight = 1.2), 
+				legend.position = "none") +
+	geom_hline(yintercept = 0, linetype = "dashed") + 
+	geom_signif(xmin = 1, xmax = 3,
+							y_position = 2.5, tip_length = 0, vjust = 0.5, size = 0.25,
+							textsize = 3.5, family = "Arial",
+							annotation = "***")+
+	geom_signif(xmin = 2, xmax = 3, 
+							y_position = 2.75, tip_length = 0, vjust = 0.5, size = 0.25,
+							textsize = 3.5, family = "Arial",
+							annotation = "**")
+
+print(plt)
+
+if (is_save == 1) {
+	ggsave("data/plots/ku.png", plt,
+				 height = plot_h, width = plot_h * 0.6, dpi = resolution)
+}
+```
+
+# 5. Signed KL divergence ($D_{KL}$)
+
+
+# Lesion analysis 
