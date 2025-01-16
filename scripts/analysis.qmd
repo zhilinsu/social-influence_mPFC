@@ -1761,8 +1761,130 @@ kld_lmer_3e_table <- kld_lmer_3e_table_full |>
 print(kld_lmer_3e_table)
 ```
 
+## 5.4. Plot (**Figure 4**)
+
+```{r}
+#| label: fig-kld
+#| echo: false 
+#| warning: false 
+#| fig-cap: "Signed KL divergence." 
+#| fig-width: 4
+#| fig-height: 4
+
+# Preparation 
+vars <- "norm_kl"
+
+plt_data <- data_kld_plt %>% 
+	group_by(group, other_pref, condition1) %>% 
+	filter(!is.na(get(vars))) %>%
+	summarise(n = n(), 
+						mean = mean(get(vars), na.rm = TRUE), 
+						median = median(get(vars), na.rm = TRUE), 
+						sd = sd(get(vars), na.rm = TRUE), 
+						se = sd / sqrt(n)) %>% 
+	ungroup() 
+
+data_kld_plt <- data_kld_plt |> 
+	mutate(id = factor(id)) |> 
+	mutate(condition2 = interaction(other_pref, group, sep = ":"))
+
+# Plot setting 
+pos_dodge <- position_dodge(width = 0.55)
+
+other_lims <- c("impulsive", "patient")
+other_labs <- c(" Impulsive other", " Patient other")
+other_fills <- c("#5491cb", "#fcd466")
+other_cols <- c("#abdeff", "#fde69f")
+
+inter_lims2 <- c("impulsive:HC","patient:HC",
+								 "impulsive:mPFC", "patient:mPFC",
+								 "impulsive:LC", "patient:LC")
+
+inter_labs2 <- c("", "Healthy\ncontrols", 
+								 "", "mPFC\nlesions", 
+								 "", "Lesion\ncontrols")
+
+# ggplot for manuscript
+plt <- ggplot(data_kld_plt, aes(x = condition2, y = norm_kl, fill = other_pref, 
+															  colour = other_pref)) + 
+	stat_summary(fun = mean, geom = "bar", 
+							 position = position_dodge(0.75), 
+							 width = 0.75, alpha = 1, colour = "black", linewidth = 0.3) +
+	geom_line(aes(group = id), position = pos_dodge, 
+						colour = "grey", alpha = 0.3, linewidth = 0.3) +
+	geom_point(aes(group = id), position = pos_dodge, size = 1.5, alpha = 0.5, 
+						 show.legend = FALSE) + 
+	stat_summary(fun = mean, geom = "bar", 
+							 position = position_dodge(0.75), 
+							 width = 0.75, alpha = 0, colour = "black", linewidth = 0.3) + 
+	stat_summary(fun.data = mean_se, geom = "errorbar", 
+							 conf.int = 0.95, position = position_dodge(0.75), 
+							 width = 0, colour = "black", alpha = 1, linewidth = 0.3) +
+	scale_x_discrete(name = "", limits = inter_lims2, labels = inter_labs2) +
+	scale_y_continuous(name = "Signed KL divergence") + 
+	scale_fill_manual(limits = other_lims, values = other_fills, 
+										labels = other_labs) +
+	scale_colour_manual(limits = other_lims, values = other_cols, 
+											labels = other_labs) +
+	theme_classic() + 
+	theme(text = element_text(family = "Arial"), 
+				legend.title = element_blank(),
+				legend.key = element_rect(linewidth = c(2, 2), colour = NA),
+				legend.text = element_text(family = "Arial", 
+																	 size = 8, margin = margin(l = 0)),
+				legend.key.height = unit(0.3, "cm"),
+				legend.key.width = unit(0.3, "cm"),
+				legend.key.spacing.y = unit(0.1, "cm"), 
+				legend.justification = c(0, 0.325),
+				axis.text.x = element_text(size = 10, hjust = 0.8),
+				axis.text.y = element_markdown(size = 10), 
+				axis.title.x = element_markdown(size = 10), 
+				axis.title.y = element_markdown(size = 12, lineheight = 1.2)) +
+	geom_hline(yintercept = 0, linetype = "dashed", linewidth = 0.25) +
+	geom_signif(annotation = "*",
+							xmin = 1.5, xmax = 3.5, 
+							y_position = 1.85, tip_length = 0.01,
+							vjust = 0.5, size = 0.25,
+							textsize = 3.5, family = "Arial", colour = "black") +
+	geom_segment(aes(x = 1.4, xend = 1.6, y = 1.78, yend = 1.78), 
+               colour = "black", linewidth = 0.25) + 
+	geom_segment(aes(x = 3.4, xend = 3.6, y = 1.78, yend = 1.78), 
+               colour = "black", linewidth = 0.25) + 
+	geom_signif(annotation = "*",
+							xmin = 3.5, xmax = 5.5, 
+							y_position = 1.45, tip_length = 0.01,
+							vjust = 0.5, size = 0.25,
+							textsize = 3.5, family = "Arial", colour = "black") + 
+	geom_signif(annotation = "**",
+							xmin = 1, xmax = 3, 
+							y_position = 1.05, tip_length = 0.01,
+							vjust = 0.5, size = 0.25,
+							textsize = 3.5, family = "Arial", colour = "black") +
+	annotation_custom(grob = grid::textGrob("\u2190 shift away", x = -0.28, y = 0.15, rot = 90,
+																					gp = grid::gpar(fontsize = 9, 
+																													fontface = "italic", fontfamily = "Arial"))) +
+	annotation_custom(grob = grid::textGrob("shift toward \u2192", x = -0.28, y = 0.85, rot = 90,
+																					gp = grid::gpar(fontsize = 9, 
+																													fontface = "italic", fontfamily = "Arial"))) +
+	coord_cartesian(expand = TRUE, clip = "off") + 
+	theme(plot.margin = unit(c(0.2, 0.2, 0, 1), "cm"))
+	
+print(plt)
+
+if (is_save == 1) {
+	ggsave("data/plots/kld.png", plt,
+				 height = plot_h, width = plot_h * 1, dpi = resolution)
+}
+```
+
 # 6. Correlations
 ## 6.1. Learning performances vs Signed KL divergence 
+
+```{r}
+#| label: corr_accuracy_kld 
+#| echo: false 
+#| warning: false 
+```
 
 ## 6.2. Perceived similarity vs Signed KL divergence 
 
