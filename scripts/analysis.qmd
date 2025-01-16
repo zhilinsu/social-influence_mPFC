@@ -1927,20 +1927,74 @@ corr_acc_kld_hc_p_ci <- psych::corr.test(data_acc_kld_hc_p$acc,
 																				 data_acc_kld_hc_p$norm_kl,
 																				 method = "spearman")
 
+set.seed(1213)
+rho_samples <- spearmanGibbsSampler(data_acc_kld_hc_p$acc,
+																		data_acc_kld_hc_p$norm_kl)
 
-# mPFC lesions impulsive
+bf10 <- computeBayesFactorOneZero(rho_samples$rhoSamples,
+																	whichTest = "Spearman",
+																	priorParameter = 1)
+bf01 <- 1 / bf10
+
+# mPFC lesions impulsive ----
 data_acc_kld_mpfc_i <- data_acc_kld |> 
 	dplyr::filter(group == "mPFC") |> 
 	dplyr::filter(other_pref == "impulsive") |> 
 	dplyr::filter(!is.na(group) & !is.na(other_pref))
 
-# mPFC lesions patient
+set.seed(1213)
+rho_samples <- spearmanGibbsSampler(data_acc_kld_mpfc_i$acc,
+																		data_acc_kld_mpfc_i$norm_kl)
+
+bf10 <- computeBayesFactorOneZero(rho_samples$rhoSamples,
+																	whichTest = "Spearman",
+																	priorParameter = 1)
+bf01 <- 1 / bf10
+
+# mPFC lesions patient ---- 
 data_acc_kld_mpfc_p <- data_acc_kld |> 
 	dplyr::filter(group == "mPFC") |> 
 	dplyr::filter(other_pref == "patient") |> 
 	dplyr::filter(!is.na(group) & !is.na(other_pref))
 
-# Lesion controls impulsive 
+set.seed(1213)
+rho_samples <- spearmanGibbsSampler(data_acc_kld_mpfc_p$acc,
+																		data_acc_kld_mpfc_p$norm_kl)
+
+bf10 <- computeBayesFactorOneZero(rho_samples$rhoSamples,
+																	whichTest = "Spearman",
+																	priorParameter = 1)
+bf01 <- 1 / bf10
+
+# Lesion controls impulsive ----
+data_acc_kld_lc_i <- data_acc_kld |> 
+	dplyr::filter(group == "LC") |> 
+	dplyr::filter(other_pref == "impulsive") |> 
+	dplyr::filter(!is.na(group) & !is.na(other_pref))
+
+set.seed(1213)
+rho_samples <- spearmanGibbsSampler(data_acc_kld_lc_i$acc,
+																		data_acc_kld_lc_i$norm_kl)
+
+bf10 <- computeBayesFactorOneZero(rho_samples$rhoSamples,
+																	whichTest = "Spearman",
+																	priorParameter = 1)
+bf01 <- 1 / bf10
+
+# Lesion controls patient ----
+data_acc_kld_lc_p <- data_acc_kld |> 
+	dplyr::filter(group == "LC") |> 
+	dplyr::filter(other_pref == "patient") |> 
+	dplyr::filter(!is.na(group) & !is.na(other_pref))
+
+set.seed(1213)
+rho_samples <- spearmanGibbsSampler(data_acc_kld_lc_p$acc,
+																		data_acc_kld_lc_p$norm_kl)
+
+bf10 <- computeBayesFactorOneZero(rho_samples$rhoSamples,
+																	whichTest = "Spearman",
+																	priorParameter = 1)
+bf01 <- 1 / bf10
 
 ```
 
