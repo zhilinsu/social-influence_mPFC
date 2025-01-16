@@ -15,7 +15,7 @@ execute:
   cache: true
 ---
 
-# Preparation 
+# 0-1. Preparation 
 
 ```{r}
 #| label: setting 
@@ -85,7 +85,7 @@ ax_text <- 12
 ax_title <- 16
 ```
 
-# Exclusion 
+# 0-2. Exclusion 
 
 ```{r}
 #| label: exclusion 
@@ -149,7 +149,7 @@ if (is_save == 1) {
 }
 ```
 
-# Participants
+# 0-3. Participants
 
 ## Healthy controls
 
@@ -163,7 +163,7 @@ if (is_save == 1) {
 
 17 lesion controls (`Group SD mPFC` label = 4) were recruited.
 
-# Data pre-processing 
+# 0-4. Data pre-processing 
 
 ```{r}
 #| label: preprocessing_1 
@@ -397,7 +397,7 @@ data_all <- data_all %>%
 												ordered = FALSE))
 ```
 
-# Save the pre-processed data 
+# 0-5. Save the pre-processed data 
 
 ```{r}
 #| label: save
@@ -413,6 +413,427 @@ if (is_save == 1) {
 }
 ```
 
-# Demographics 
+# 1. Demographics (**Table S1**)
 
+```{r}
+#| label: demographics 
+#| echo: false
+#| warning: false 
 
+# Sample size   
+demogr_sample_size <- calculate_sample_size(data_all, "id", "group")
+
+# Age 
+demogr_age <- get_summary(data_all, "age", "group")
+
+## Linear regression 
+lm_model <- lm(age ~ group, data = data_all)
+lm_model_stats <- stats_lm(lm_model)
+row.names(lm_model_stats) <- c("Intercept", 
+															 "Group (HC vs mPFC)", 
+															 "Group (LC vs mPFC)")
+
+r_squared <- summary(lm_model)$r.squared
+adjusted_r_squared <- summary(lm_model)$adj.r.squared
+
+kable(lm_model_stats, align = rep("c", 6),
+			caption = "Linear regression for age") %>%
+	footnote(general = paste("R <sup>2</sup> / Adjusted R <sup>2</sup>:",
+													 pvalr(r_squared, html = TRUE), "/", 
+													 pvalr(adjusted_r_squared, html = TRUE)),
+					 general_title = "",
+           escape = FALSE) %>%
+	kable_styling()
+
+# Gender
+demogr_female <- calculate_females(data_all, "group")
+chisq_test(data_all$gender, data_all$group)
+
+## Logistic regression
+data_gender <- data_all %>%
+	dplyr::select(id, group, gender) %>% 
+	mutate(bi_gender = gender - 1)
+
+logit_model <- glm(bi_gender ~ group, family = binomial(link = "logit"), data = data_gender)
+logit_model_stats <- stats_lm(logit_model)
+row.names(logit_model_stats) <- c("Intercept",
+																	"Group (HC vs mPFC)",
+																	"Group (LC vs mPFC)")
+
+kable(logit_model_stats, align = rep("c", 6),
+			caption = "Binary logistic regression for gender") %>%
+	kable_styling()
+```
+
+## 1.1. Education years 
+
+```{r}
+#| label: education 
+#| echo: false 
+#| warning: false 
+
+edu_sample_size <- calculate_sample_size(data_all, "edu", "group")
+edu_summary <- get_summary(data_all, "edu", "group")
+edu_norm <- check_normality(data_all, "edu", "group")
+
+# Linear regression
+lm_model <- lm(edu ~ group, data = data_all)
+lm_model_stats <- stats_lm(lm_model)
+row.names(lm_model_stats) <- c("Intercept", 
+															 "Group (HC vs mPFC)", 
+															 "Group (LC vs mPFC)")
+
+r_squared <- summary(lm_model)$r.squared
+adjusted_r_squared <- summary(lm_model)$adj.r.squared
+
+kable(lm_model_stats, align = rep("c", 6),
+			caption = "Linear regression for education years") %>%
+	footnote(general = paste("R <sup>2</sup> / Adjusted R <sup>2</sup>:",
+													 pvalr(r_squared, html = TRUE), "/", 
+													 pvalr(adjusted_r_squared, html = TRUE)),
+					 general_title = "",
+           escape = FALSE) %>%
+	kable_styling()
+```
+
+## 1.2. Apathy-Motivation Index (AMI)
+
+```{r}
+#| label: ami 
+#| echo: false 
+#| warning: false
+
+ami_total_sample_size <- calculate_sample_size(data_all, "ami_total", "group")
+ami_total_summary <- get_summary(data_all, "ami_total", "group")
+ami_total_norm <- check_normality(data_all, "ami_total", "group")
+
+## Linear regression
+lm_model <- lm(ami_total ~ group, data = data_all)
+lm_model_stats <- stats_lm(lm_model)
+row.names(lm_model_stats) <- c("Intercept", 
+															 "Group (HC vs mPFC)", 
+															 "Group (LC vs mPFC)")
+
+r_squared <- summary(lm_model)$r.squared
+adjusted_r_squared <- summary(lm_model)$adj.r.squared
+
+kable(lm_model_stats, align = rep("c", 6),
+			caption = "Linear regression for AMI total") %>%
+	footnote(general = paste("R <sup>2</sup> / Adjusted R <sup>2</sup>:",
+													 pvalr(r_squared, html = TRUE), "/", 
+													 pvalr(adjusted_r_squared, html = TRUE)),
+					 general_title = "",
+           escape = FALSE) %>%
+	kable_styling()
+```
+
+## 1.3. Beck Depression Inventory (BDI)
+
+```{r}
+#| label: bdi 
+#| echo: false 
+#| warning: false
+
+bdi_sample_size <- calculate_sample_size(data_all, "bdi_total", "group")
+bdi_summary <- get_summary(data_all, "bdi_total", "group")
+bdi_norm <- check_normality(data_all, "bdi_total", "group")
+
+## Linear regression
+lm_model <- lm(bdi_total ~ group, data = data_all)
+lm_model_stats <- stats_lm(lm_model)
+row.names(lm_model_stats) <- c("Intercept", 
+															 "Group (HC vs mPFC)", 
+															 "Group (LC vs mPFC)")
+
+r_squared <- summary(lm_model)$r.squared
+adjusted_r_squared <- summary(lm_model)$adj.r.squared
+
+kable(lm_model_stats, align = rep("c", 6),
+			caption = "Linear regression for BDI") %>%
+	footnote(general = paste("R <sup>2</sup> / Adjusted R <sup>2</sup>:",
+													 pvalr(r_squared, html = TRUE), "/", 
+													 pvalr(adjusted_r_squared, html = TRUE)),
+					 general_title = "",
+           escape = FALSE) %>%
+	kable_styling()
+```
+
+## 1.4. Executive function (Trail Making Test)
+
+```{r}
+#| label: trail_making
+#| echo: false
+#| warning: false
+
+# Trail A
+trail_a_sample_size <- calculate_sample_size(data_all, "trail_a", "group")
+trail_a_summary <- get_summary(data_all, "trail_a", "group")
+trail_a_norm <- check_normality(data_all, "trail_a", "group")
+
+## Linear regression 
+lm_model <- lm(trail_a ~ group, data = data_all)
+lm_model_stats <- stats_lm(lm_model)
+row.names(lm_model_stats) <- c("Intercept", 
+															 "Group (HC vs mPFC)", 
+															 "Group (LC vs mPFC)")
+
+r_squared <- summary(lm_model)$r.squared
+adjusted_r_squared <- summary(lm_model)$adj.r.squared
+
+kable(lm_model_stats, align = rep("c", 6),
+			caption = "Linear regression for Trail Making Test A") %>%
+	footnote(general = paste("R <sup>2</sup> / Adjusted R <sup>2</sup>:",
+													 pvalr(r_squared, html = TRUE), "/", 
+													 pvalr(adjusted_r_squared, html = TRUE)),
+					 general_title = "",
+           escape = FALSE) %>%
+	kable_styling()
+
+# Trail B
+trail_b_sample_size <- calculate_sample_size(data_all, "trail_b", "group")
+trail_b_summary <- get_summary(data_all, "trail_b", "group")
+trail_b_norm <- check_normality(data_all, "trail_b", "group")
+
+## Linear regression 
+lm_model <- lm(trail_b ~ group, data = data_all)
+lm_model_stats <- stats_lm(lm_model)
+row.names(lm_model_stats) <- c("Intercept", 
+															 "Group (HC vs mPFC)", 
+															 "Group (LC vs mPFC)")
+
+r_squared <- summary(lm_model)$r.squared
+adjusted_r_squared <- summary(lm_model)$adj.r.squared
+
+kable(lm_model_stats, align = rep("c", 6),
+			caption = "Linear regression for Trail Making Test B") %>%
+	footnote(general = paste("R <sup>2</sup> / Adjusted R <sup>2</sup>:",
+													 pvalr(r_squared, html = TRUE), "/", 
+													 pvalr(adjusted_r_squared, html = TRUE)),
+					 general_title = "",
+           escape = FALSE) %>%
+	kable_styling()
+```
+
+# 2. Accuracy 
+## 2.1. Preparation
+```{r}
+#| label: accuracy_preparation
+#| echo: false
+#| warning: false
+
+# Preparation 
+data_acc_1 <- data_all %>% 
+	dplyr::select(id, group, acc_i) %>% 
+	rename(acc = acc_i) %>% 
+	mutate(other_pref = "i", 
+				 other_pref = as.factor(other_pref)) 
+
+data_acc_2 <- data_all %>% 
+	dplyr::select(id, group, acc_p) %>% 
+	rename(acc = acc_p) %>% 
+	mutate(other_pref = "p", 
+				 other_pref = as.factor(other_pref)) 
+
+data_acc <- rbind(data_acc_1, data_acc_2) %>%
+	mutate(acc = acc * 100) %>%
+	mutate(other_pref = factor(other_pref, 
+														 levels = c("i", "p"), 
+														 labels = c("impulsive", "patient"),
+														 ordered = FALSE)) %>%
+	mutate(condition1 = interaction(group, other_pref, sep = ":")) %>%
+	arrange(id, other_pref)
+
+rm(data_acc_1, data_acc_2)
+
+# Sum-to-zero coding of other's preferences
+contrasts(data_acc$other_pref) <- c(-1, 1)
+
+# Preparation for plotting
+data_acc_plt_1 <- data_all_plt %>% 
+	dplyr::select(id, group, acc_i) %>% 
+	rename(acc = acc_i) %>% 
+	mutate(other_pref = "i", 
+				 other_pref = as.factor(other_pref)) 
+
+data_acc_plt_2 <- data_all_plt %>% 
+	dplyr::select(id, group, acc_p) %>% 
+	rename(acc = acc_p) %>% 
+	mutate(other_pref = "p", 
+				 other_pref = as.factor(other_pref)) 
+
+data_acc_plt <- rbind(data_acc_plt_1, data_acc_plt_2) %>%
+	mutate(acc = acc * 100) %>%
+	mutate(other_pref = factor(other_pref, 
+														 levels = c("i", "p"), 
+														 labels = c("impulsive", "patient"),
+														 ordered = FALSE)) %>%
+	mutate(condition1 = interaction(group, other_pref, sep = ":")) %>%
+	arrange(id, other_pref)
+
+rm(data_acc_plt_1, data_acc_plt_2)
+```
+
+## 2.2. Descriptive 
+
+```{r}
+#| label: accuracy_descriptive 
+#| echo: false 
+#| warning: false 
+
+# Summary 
+acc_sample_size <- calculate_sample_size(data_acc, "acc", "condition1")
+acc_summary <- get_summary(data_acc, "acc", "condition1")
+
+summary_table <- tibble(
+	"Accuracy" = c("Impulsive Other", "Patient Other"), 
+	"Healthy controls mean (SE)" = c(paste0(specify_decimal(acc_summary[["HC:impulsive"]]$mean, 3), 
+															 " (", 
+															 specify_decimal(acc_summary[["HC:impulsive"]]$se, 3),
+															 ")"),
+																paste0(specify_decimal(acc_summary[["HC:patient"]]$mean, 3), 
+															 " (", 
+															 specify_decimal(acc_summary[["HC:patient"]]$se, 3),
+															 ")")), 
+	"mPFC lesions mean (SE)" = c(paste0(specify_decimal(acc_summary[["mPFC:impulsive"]]$mean, 3), 
+															 " (", 
+															 specify_decimal(acc_summary[["mPFC:impulsive"]]$se, 3),
+															 ")"),
+																paste0(specify_decimal(acc_summary[["mPFC:patient"]]$mean, 3), 
+															 " (", 
+															 specify_decimal(acc_summary[["mPFC:patient"]]$se, 3),
+															 ")")), 
+	"Lesion controls mean (SE)" = c(paste0(specify_decimal(acc_summary[["LC:impulsive"]]$mean, 3), 
+															 " (", 
+															 specify_decimal(acc_summary[["LC:impulsive"]]$se, 3),
+															 ")"),
+																paste0(specify_decimal(acc_summary[["LC:patient"]]$mean, 3), 
+															 " (", 
+															 specify_decimal(acc_summary[["LC:patient"]]$se, 3),
+															 ")"))
+	)
+
+kable(summary_table, 
+      align = c("l", "c", "c"), 
+      caption = "Summary table of learning accuracy") %>% 
+	kable_styling()
+
+# Binomial test
+## HC - impulsive 
+acc_hc_impulsive_all <- data_acc %>%
+	filter(group == "HC" & other_pref == "impulsive") %>% 
+	filter(!is.na(acc)) %>%
+	count() %>% 
+	pull(n)
+
+acc_hc_impulsive_above50 <- data_acc %>%
+	filter(group == "HC" & other_pref == "impulsive") %>% 
+	filter(!is.na(acc)) %>%
+	filter(acc > 50) %>% 
+	count() %>% 
+	pull(n)
+
+acc_ha_impulsive_binom <- binom.test(x = acc_hc_impulsive_above50, 
+																		 n = acc_hc_impulsive_all, 
+																		 p = 0.5, alternative = "greater")
+
+## mPFC - impulsive
+acc_mpfc_impulsive_all <- data_acc %>%
+	filter(group == "mPFC" & other_pref == "impulsive") %>% 
+	filter(!is.na(acc)) %>%
+	count() %>% 
+	pull(n)
+
+acc_mpfc_impulsive_above50 <- data_acc %>%
+	filter(group == "mPFC" & other_pref == "impulsive") %>% 
+	filter(!is.na(acc)) %>%
+	filter(acc > 50) %>% 
+	count() %>% 
+	pull(n)
+
+acc_mpfc_impulsive_binom <- binom.test(x = acc_mpfc_impulsive_above50,
+																			 n = acc_mpfc_impulsive_all,
+																			 p = 0.5, alternative = "greater")
+
+## LC - impulsive 
+acc_lc_impulsive_all <- data_acc %>%
+	filter(group == "LC" & other_pref == "impulsive") %>% 
+	filter(!is.na(acc)) %>%
+	count() %>% 
+	pull(n)
+
+acc_lc_impulsive_above50 <- data_acc %>%
+	filter(group == "LC" & other_pref == "impulsive") %>% 
+	filter(!is.na(acc)) %>%
+	filter(acc > 50) %>% 
+	count() %>% 
+	pull(n)
+
+acc_lc_impulsive_binom <- binom.test(x = acc_lc_impulsive_above50,
+																		 n = acc_lc_impulsive_all,
+																		 p = 0.5, alternative = "greater")
+
+## HC - patient 
+acc_hc_patient_all <- data_acc %>%
+	filter(group == "HC" & other_pref == "patient") %>% 
+	filter(!is.na(acc)) %>%
+	count() %>% 
+	pull(n)
+
+acc_hc_patient_above50 <- data_acc %>%
+	filter(group == "HC" & other_pref == "patient") %>% 
+	filter(!is.na(acc)) %>%
+	filter(acc > 50) %>% 
+	count() %>% 
+	pull(n)
+
+acc_ha_patient_binom <- binom.test(x = acc_hc_patient_above50,
+																	 n = acc_hc_patient_all,
+																	 p = 0.5, alternative = "greater")
+
+## mPFC - patient
+acc_mpfc_patient_all <- data_acc %>%
+	filter(group == "mPFC" & other_pref == "patient") %>% 
+	filter(!is.na(acc)) %>%
+	count() %>% 
+	pull(n)
+
+acc_mpfc_patient_above50 <- data_acc %>%
+	filter(group == "mPFC" & other_pref == "patient") %>% 
+	filter(!is.na(acc)) %>%
+	filter(acc > 50) %>% 
+	count() %>% 
+	pull(n)
+
+acc_mpfc_patient_binom <- binom.test(x = acc_mpfc_patient_above50,
+																		 n = acc_mpfc_patient_all,
+																		 p = 0.5, alternative = "greater")
+
+## LC - patient  
+acc_lc_patient_all <- data_acc %>%
+	filter(group == "LC" & other_pref == "patient") %>% 
+	filter(!is.na(acc)) %>%
+	count() %>% 
+	pull(n)
+
+acc_lc_patient_above50 <- data_acc %>%
+	filter(group == "LC" & other_pref == "patient") %>% 
+	filter(!is.na(acc)) %>%
+	filter(acc > 50) %>% 
+	count() %>% 
+	pull(n)
+
+acc_lc_patient_binom <- binom.test(x = acc_lc_patient_above50,
+																	 n = acc_lc_patient_all,
+																	 p = 0.5, alternative = "greater")
+```
+
+## 2.3. Plot (**Figure 1c**)
+```{r}
+#| label: fig-accuracy
+#| echo: false 
+#| warning: false 
+#| fig-cap: "Learning performances." 
+#| fig-width: 3.4
+#| fig-height: 4
+
+```
