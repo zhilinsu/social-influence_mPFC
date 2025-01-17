@@ -1884,6 +1884,7 @@ if (is_save == 1) {
 #| label: corr_accuracy_kld 
 #| echo: false 
 #| warning: false 
+#| output: false
 
 data_kld <- data_kld |> 
 	mutate(id = as.factor(id))
@@ -1941,7 +1942,15 @@ bf01 <- 1 / bf10
 data_acc_kld_mpfc_i <- data_acc_kld |> 
 	dplyr::filter(group == "mPFC") |> 
 	dplyr::filter(other_pref == "impulsive") |> 
-	dplyr::filter(!is.na(group) & !is.na(other_pref))
+	dplyr::filter(!is.na(acc) & !is.na(norm_kl))
+
+corr_acc_kld_mpfc_i <- rcorr(data_acc_kld_mpfc_i$acc,
+														 data_acc_kld_mpfc_i$norm_kl,
+														 type = "spearman")
+
+corr_acc_kld_mpfc_i_ci <- psych::corr.test(data_acc_kld_mpfc_i$acc,
+																					 data_acc_kld_mpfc_i$norm_kl,
+																					 method = "spearman")
 
 set.seed(1213)
 rho_samples <- spearmanGibbsSampler(data_acc_kld_mpfc_i$acc,
@@ -1956,7 +1965,15 @@ bf01 <- 1 / bf10
 data_acc_kld_mpfc_p <- data_acc_kld |> 
 	dplyr::filter(group == "mPFC") |> 
 	dplyr::filter(other_pref == "patient") |> 
-	dplyr::filter(!is.na(group) & !is.na(other_pref))
+	dplyr::filter(!is.na(acc) & !is.na(norm_kl))
+
+corr_acc_kld_mpfc_p <- rcorr(data_acc_kld_mpfc_p$acc,
+														 data_acc_kld_mpfc_p$norm_kl,
+														 type = "spearman")
+
+corr_acc_kld_mpfc_p_ci <- psych::corr.test(data_acc_kld_mpfc_p$acc,
+																					 data_acc_kld_mpfc_p$norm_kl,
+																					 method = "spearman")
 
 set.seed(1213)
 rho_samples <- spearmanGibbsSampler(data_acc_kld_mpfc_p$acc,
@@ -1971,7 +1988,15 @@ bf01 <- 1 / bf10
 data_acc_kld_lc_i <- data_acc_kld |> 
 	dplyr::filter(group == "LC") |> 
 	dplyr::filter(other_pref == "impulsive") |> 
-	dplyr::filter(!is.na(group) & !is.na(other_pref))
+	dplyr::filter(!is.na(acc) & !is.na(norm_kl))
+
+corr_acc_kld_lc_i <- rcorr(data_acc_kld_lc_i$acc, 
+													 data_acc_kld_lc_i$norm_kl, 
+													 type = "spearman")
+
+corr_acc_kld_lc_i_ci <- psych::corr.test(data_acc_kld_lc_i$acc,
+																				 data_acc_kld_lc_i$norm_kl,
+																				 method = "spearman")
 
 set.seed(1213)
 rho_samples <- spearmanGibbsSampler(data_acc_kld_lc_i$acc,
@@ -1986,7 +2011,15 @@ bf01 <- 1 / bf10
 data_acc_kld_lc_p <- data_acc_kld |> 
 	dplyr::filter(group == "LC") |> 
 	dplyr::filter(other_pref == "patient") |> 
-	dplyr::filter(!is.na(group) & !is.na(other_pref))
+	dplyr::filter(!is.na(acc) & !is.na(norm_kl))
+
+corr_acc_kld_lc_p <- rcorr(data_acc_kld_lc_p$acc, 
+													 data_acc_kld_lc_p$norm_kl, 
+													 type = "spearman")
+
+corr_acc_kld_lc_p_ci <- psych::corr.test(data_acc_kld_lc_p$acc,
+																				 data_acc_kld_lc_p$norm_kl,
+																				 method = "spearman")
 
 set.seed(1213)
 rho_samples <- spearmanGibbsSampler(data_acc_kld_lc_p$acc,
@@ -1996,11 +2029,214 @@ bf10 <- computeBayesFactorOneZero(rho_samples$rhoSamples,
 																	whichTest = "Spearman",
 																	priorParameter = 1)
 bf01 <- 1 / bf10
+
+# Adjust p-values for multiple comparisons 
+corr_acc_kld_pvalues <- c(corr_acc_kld_hc_i$P[1, 2],
+													corr_acc_kld_hc_p$P[1, 2],
+													corr_acc_kld_mpfc_i$P[1, 2],
+													corr_acc_kld_mpfc_p$P[1, 2],
+													corr_acc_kld_lc_i$P[1, 2],
+													corr_acc_kld_lc_p$P[1, 2])
+
+corr_acc_kld_pvalues_adjusted <- p.adjust(corr_acc_kld_pvalues, method = "fdr")
 ```
 
 ## 6.2. Perceived similarity vs Signed KL divergence (**Table S6**)
 
+```{r}
+#| label: corr_similar_kld 
+#| echo: false 
+#| warning: false 
+#| output: false
+
+data_similar <- data_similar |> 
+	mutate(other_pref = case_when(
+		other_pref == "i" ~ "impulsive",
+		other_pref == "p" ~ "patient")) |> 
+	mutate(id = as.factor(id))
+
+data_similar_kld <- data_kld |> 
+	dplyr::select(!condition1) |> 
+	left_join(data_similar, by = c("id", "group", "other_pref"))
+
+# Healthy controls impulsive ---- 
+data_similar_kld_hc_i <- data_similar_kld |> 
+	filter(group == "HC" & other_pref == "impulsive") |> 
+	dplyr::filter(!is.na(sd_similar) & !is.na(norm_kl))
+
+corr_similar_kld_hc_i <- rcorr(data_similar_kld_hc_i$sd_similar, 
+															 data_similar_kld_hc_i$norm_kl, 
+															 type = "spearman")
+
+corr_similar_kld_hc_i_ci <- psych::corr.test(data_similar_kld_hc_i$sd_similar, 
+																						 data_similar_kld_hc_i$norm_kl, 
+																						 method = "spearman")
+
+set.seed(1213)
+rho_samples <- spearmanGibbsSampler(xVals = data_similar_kld_hc_i$sd_similar,
+																		yVals = data_similar_kld_hc_i$norm_kl)
+
+bf10 <- computeBayesFactorOneZero(rho_samples$rhoSamples,
+																	whichTest = "Spearman",
+																	priorParameter = 1)
+bf01 <- 1 / bf10
+
+# Healthy controls patient ---- 
+data_similar_kld_hc_p <- data_similar_kld |> 
+	filter(group == "HC" & other_pref == "patient") |> 
+	dplyr::filter(!is.na(sd_similar) & !is.na(norm_kl))
+
+corr_similar_kld_hc_p <- rcorr(data_similar_kld_hc_p$sd_similar, 
+															 data_similar_kld_hc_p$norm_kl, 
+															 type = "spearman")
+
+corr_similar_kld_hc_p_ci <- psych::corr.test(data_similar_kld_hc_p$sd_similar, 
+																						 data_similar_kld_hc_p$norm_kl, 
+																						 method = "spearman")
+
+set.seed(1213)
+rho_samples <- spearmanGibbsSampler(xVals = data_similar_kld_hc_p$sd_similar,
+																		yVals = data_similar_kld_hc_p$norm_kl)
+
+bf10 <- computeBayesFactorOneZero(rho_samples$rhoSamples,
+																	whichTest = "Spearman",
+																	priorParameter = 1)
+bf01 <- 1 / bf10
+
+# mPFC lesions impulsive ---- 
+data_similar_kld_mpfc_i <- data_similar_kld |> 
+	filter(group == "mPFC" & other_pref == "impulsive") |> 
+	dplyr::filter(!is.na(sd_similar) & !is.na(norm_kl))
+
+corr_similar_kld_mpfc_i <- rcorr(data_similar_kld_mpfc_i$sd_similar,
+																 data_similar_kld_mpfc_i$norm_kl,
+																 type = "spearman")
+
+corr_similar_kld_mpfc_i_ci <- psych::corr.test(data_similar_kld_mpfc_i$sd_similar,
+																							 data_similar_kld_mpfc_i$norm_kl,
+																							 method = "spearman")
+
+set.seed(1213)
+rho_samples <- spearmanGibbsSampler(xVals = data_similar_kld_mpfc_i$sd_similar,
+																		yVals = data_similar_kld_mpfc_i$norm_kl)
+
+bf10 <- computeBayesFactorOneZero(rho_samples$rhoSamples,
+																	whichTest = "Spearman",
+																	priorParameter = 1)
+bf01 <- 1 / bf10
+
+# mPFC lesions patient ---- 
+data_similar_kld_mpfc_p <- data_similar_kld |> 
+	filter(group == "mPFC" & other_pref == "patient") |> 
+	dplyr::filter(!is.na(sd_similar) & !is.na(norm_kl))
+
+corr_similar_kld_mpfc_p <- rcorr(data_similar_kld_mpfc_p$sd_similar,
+																 data_similar_kld_mpfc_p$norm_kl,
+																 type = "spearman")
+
+corr_similar_kld_mpfc_p_ci <- psych::corr.test(data_similar_kld_mpfc_p$sd_similar,
+																							 data_similar_kld_mpfc_p$norm_kl,
+																							 method = "spearman")
+
+set.seed(1213)
+rho_samples <- spearmanGibbsSampler(xVals = data_similar_kld_mpfc_p$sd_similar,
+																		yVals = data_similar_kld_mpfc_p$norm_kl)
+
+bf10 <- computeBayesFactorOneZero(rho_samples$rhoSamples,
+																	whichTest = "Spearman",
+																	priorParameter = 1)
+bf01 <- 1 / bf10
+
+# Lesion controls impulsive ---- 
+data_similar_kld_lc_i <- data_similar_kld |> 
+	filter(group == "LC" & other_pref == "impulsive") |> 
+	dplyr::filter(!is.na(sd_similar) & !is.na(norm_kl))
+
+corr_similar_kld_lc_i <- rcorr(data_similar_kld_lc_i$sd_similar, 
+															 data_similar_kld_lc_i$norm_kl, 
+															 type = "spearman")
+
+corr_similar_kld_lc_i_ci <- psych::corr.test(data_similar_kld_lc_i$sd_similar, 
+																						 data_similar_kld_lc_i$norm_kl, 
+																						 method = "spearman")
+
+set.seed(1213)
+rho_samples <- spearmanGibbsSampler(xVals = data_similar_kld_lc_i$sd_similar,
+																		yVals = data_similar_kld_lc_i$norm_kl)
+
+bf10 <- computeBayesFactorOneZero(rho_samples$rhoSamples,
+																	whichTest = "Spearman",
+																	priorParameter = 1)
+bf01 <- 1 / bf10
+
+# Lesion controls patient ----
+data_similar_kld_lc_p <- data_similar_kld |> 
+	filter(group == "LC" & other_pref == "patient") |> 
+	dplyr::filter(!is.na(sd_similar) & !is.na(norm_kl))
+
+corr_similar_kld_lc_p <- rcorr(data_similar_kld_lc_p$sd_similar, 
+															 data_similar_kld_lc_p$norm_kl, 
+															 type = "spearman")
+
+corr_similar_kld_lc_p_ci <- psych::corr.test(data_similar_kld_lc_p$sd_similar, 
+																						 data_similar_kld_lc_p$norm_kl, 
+																						 method = "spearman")
+
+set.seed(1213)
+rho_samples <- spearmanGibbsSampler(xVals = data_similar_kld_lc_p$sd_similar,
+																		yVals = data_similar_kld_lc_p$norm_kl)
+
+bf10 <- computeBayesFactorOneZero(rho_samples$rhoSamples,
+																	whichTest = "Spearman",
+																	priorParameter = 1)
+bf01 <- 1 / bf10
+
+# Adjust p-values for multiple comparisons 
+corr_similar_kld_pvalues <- c(corr_similar_kld_hc_i$P[1, 2],
+															corr_similar_kld_hc_p$P[1, 2],
+															corr_similar_kld_mpfc_i$P[1, 2],
+															corr_similar_kld_mpfc_p$P[1, 2],
+															corr_similar_kld_lc_i$P[1, 2],
+															corr_similar_kld_lc_p$P[1, 2])
+
+corr_similar_kld_pvalues_adjusted <- p.adjust(corr_similar_kld_pvalues, method = "fdr")
+```
+
 ## 6.3. Total lesion size vs Self baseline temporal impulsivity 
+
+```{r}
+#| label: corr_lesion_size_self_1_km
+#| echo: false 
+#| warning: false 
+
+# Preparation 
+data_lesion <- data_all %>%
+	dplyr::select(id, group, self_1_km, self_1_ku, norm_kl_i, norm_kl_p) %>% 
+	mutate(norm_kl_diff = norm_kl_i - norm_kl_p, 
+				 group_num = case_when(
+				 group == "HC" ~ 1,
+				 group == "mPFC" ~ 2,
+				 group == "LC" ~ 3)) 
+
+lesion_size <- read.csv("lesion/lesion_size.csv", header = TRUE) |> 
+	mutate(lesion = lesion / 100.0) |> 
+	rename(id = ID) |> 
+	left_join(data_lesion, by = "id") |> 
+	mutate(group2 = "lesion")
+
+lesion_size_mpfc <- lesion_size |> 
+	filter(group == "mPFC")
+
+# Across all patient participants 
+corr_size_km_all <- rcorr(lesion_size$lesion,
+													lesion_size$self_1_km,
+													type = "spearman")
+
+# Within mPFC lesion participants 
+corr_size_km_mpfc <- rcorr(lesion_size_mpfc$lesion,
+													 lesion_size_mpfc$self_1_km,
+													 type = "spearman")
+```
 
 ## 6.4. Total lesion size vs Contrased signed KL divergence (impulsive - patient)
 
