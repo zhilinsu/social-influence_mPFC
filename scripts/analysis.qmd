@@ -2240,6 +2240,22 @@ corr_size_km_mpfc <- rcorr(lesion_size_mpfc$lesion,
 
 ## 6.4. Total lesion size vs Contrased signed KL divergence (impulsive - patient)
 
+```{r}
+#| label: corr_lesion_size_kld_diff 
+#| echo: false 
+#| warning: false 
+
+# Across all patient participants 
+corr_size_kld_diff_all <- rcorr(lesion_size$lesion,
+																lesion_size$norm_kl_diff,
+																type = "spearman")
+
+# Within mPFC lesion participants
+corr_size_kld_diff_mpfc <- rcorr(lesion_size_mpfc$lesion,
+																 lesion_size_mpfc$norm_kl_diff,
+																 type = "spearman") 
+```
+
 ## 6.5. Total lesion size vs Baseline preference uncertainty (within LC group)
 
 
