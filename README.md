@@ -25,7 +25,7 @@ Model fitting was performed using Stan (v2.32) and the RStan (v2.21.7) package i
 
 All these installations should only take a few minutes to complete.
 
-# Preparation 
+# Preparation
 
 **0 - Data**
 
@@ -33,7 +33,7 @@ Data for the delegated inter-temporal choice task collected through MATLAB have 
 
 Other self-reported data were stored in `demographics.csv` and `questionnaires.csv`.
 
-# Model fitting 
+# Model fitting
 
 **1 - Bayesian modelling with Stan**
 
@@ -47,7 +47,7 @@ Run the R script `parameter_recovery.R` to perform the process of parameter reco
 
 Run the R script `posterior_predictive_checks.R` to perform posterior predictive checks for the selected model. It also generates the corresponding plot (**Figure S2**).
 
-# Behavioural analysis 
+# Behavioural analysis
 
 **1 - Signed Kullback–Leibler divergence (*D<sub>KL</sub>*)** 
 
@@ -63,4 +63,4 @@ Run the R Quarto file `analysis.qmd` to generate plots and conduct all the behav
 
 Several linear mixed-effects models and simulation-based analyses are being used, which may extend the time needed to complete the analyses.
 
-# Lesion analysis 
+# Lesion analysis
