@@ -2216,7 +2216,11 @@ data_lesion <- data_all |>
 				 group_num = case_when(
 				 group == "HC" ~ 1,
 				 group == "mPFC" ~ 2,
-				 group == "LC" ~ 3)) 
+				 group == "LC" ~ 3))
+
+if (is_save == 1) {
+	write_csv(data_lesion, file = "lesion/data_lesion.csv")
+}
 
 lesion_size <- read.csv("lesion/lesion_size.csv", header = TRUE) |> 
 	mutate(lesion = lesion / 100.0) |> 
@@ -2405,7 +2409,7 @@ corr_kld_p_adjusted <- p.adjust(corr_kld_p, method = "fdr")
 #| fig-height: 4
 
 # Preparation 
-lesion_kld_diff_mpfc <- read.csv("data/norm_kl_diff_pos_tfce_mpfc.csv",
+lesion_kld_diff_mpfc <- read.csv("lesion/norm_kl_diff_pos_tfce_mpfc.csv",
 																 header = TRUE) |>
 	as_tibble() |>
 	mutate(id = as.double(id), 
@@ -2487,7 +2491,7 @@ if (is_save == 1) {
 #| fig-height: 4
 
 # Preparation 
-lesion_self1_km_mpfc <- read.csv("data/self_1_km_pos_tfce_mpfc.csv",
+lesion_self1_km_mpfc <- read.csv("lesion/self_1_km_pos_tfce_mpfc.csv",
 																 header = TRUE) |>
 	as_tibble() |> 
 	mutate(id = as.double(id), 
@@ -2568,7 +2572,7 @@ if (is_save == 1) {
 #| fig-height: 4
 
 # Preparation 
-lesion_kld_diff_all <- read.csv("data/norm_kl_diff_pos_tfce_all.csv",
+lesion_kld_diff_all <- read.csv("lesion/norm_kl_diff_pos_tfce_all.csv",
 																header = TRUE) |> 
 	as_tibble() |>
 	mutate(id = as.double(id), 
@@ -2650,7 +2654,7 @@ if (is_save == 1) {
 #| fig-height: 4
 
 # Preparation 
-lesion_self1_km_all <- read.csv("data/self_1_km_pos_tfce_all.csv",
+lesion_self1_km_all <- read.csv("lesion/self_1_km_pos_tfce_all.csv",
 																header = TRUE) |>
 	as_tibble() |> 
 	mutate(id = as.double(id), 
