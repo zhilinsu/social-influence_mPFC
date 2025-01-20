@@ -11,6 +11,7 @@ root
        ├─ stanfit # stanfit objects
   ├─ lesion   # lesion analysis
        ├─ all_lesion_patients 
+       ├─ lesion_masks
        ├─ mPFC_patients_only
   ├─ scripts  # R and Stan code to run the analyses and produce figures
        ├─ helper_functions 
@@ -64,3 +65,5 @@ Run the R Quarto file `analysis.qmd` to generate plots and conduct all the behav
 Several linear mixed-effects models and simulation-based analyses are being used, which may extend the time needed to complete the analyses.
 
 # Lesion analysis
+
+Please follow the `guide_to_lesion_analysis.docx` in the `lesion` folder. 
