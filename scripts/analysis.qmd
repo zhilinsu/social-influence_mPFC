@@ -2227,6 +2227,9 @@ lesion_size <- read.csv("lesion/lesion_size.csv", header = TRUE) |>
 lesion_size_mpfc <- lesion_size |> 
 	filter(group == "mPFC")
 
+lesion_size_lc <- lesion_size |> 
+	filter(group == "LC")
+
 # Across all patient participants 
 corr_size_km_all <- rcorr(lesion_size$lesion,
 													lesion_size$self_1_km,
@@ -2258,7 +2261,134 @@ corr_size_kld_diff_mpfc <- rcorr(lesion_size_mpfc$lesion,
 
 ## 6.5. Total lesion size vs Baseline preference uncertainty (within LC group)
 
+```{r}
+#| label: corr_lesion_size_self_1_ku 
+#| echo: false 
+#| warning: false 
+
+corr_size_ku_lc <- rcorr(lesion_size_lc$lesion,
+												 lesion_size_lc$self_1_ku,
+												 type = "spearman")
+
+corr_size_ku_lc_ci <- psych::corr.test(lesion_size_lc$lesion,
+																			 lesion_size_lc$self_1_ku,
+																			 method = "spearman")
+
+set.seed(1213)
+rho_samples <- spearmanGibbsSampler(xVals = lesion_size_lc$lesion,
+																		yVals = lesion_size_lc$self_1_ku)
+bf10 <- computeBayesFactorOneZero(rho_samples$rhoSamples,
+																	whichTest = "Spearman",
+																	priorParameter = 1)
+bf01 <- 1 / bf10
+```
+
+## 6.6. Signed KL divergence (impulsive vs patient) (**Table SX**)
+
+```{r}
+#| label: corr_kld_ip 
+#| echo: false 
+#| warning: false
+
+# Preparation 
+data_kld_i <- data_kld |> 
+	filter(other_pref == "impulsive") |> 
+	rename(norm_kl_i = norm_kl)
+
+data_kld_p <- data_kld |> 
+	filter(other_pref == "patient") |> 
+	rename(norm_kl_p = norm_kl)
+
+data_corr_kld <- data_kld_i |> 
+	left_join(data_kld_p, by = c("id", "group")) |> 
+	dplyr::select(id, group, norm_kl_i, norm_kl_p) |> 
+	filter(!is.na(norm_kl_i) & !is.na(norm_kl_p))
+
+# Overall  
+corr_kld <- rcorr(data_corr_kld$norm_kl_i,
+									data_corr_kld$norm_kl_p,
+									type = "spearman")
+
+corr_kld_ci <- psych::corr.test(data_corr_kld$norm_kl_i,
+																data_corr_kld$norm_kl_p,
+																method = "spearman")
+
+set.seed(1213)
+rho_samples <- spearmanGibbsSampler(xVals = data_corr_kld$norm_kl_i,
+																		yVals = data_corr_kld$norm_kl_p)
+
+bf10 <- computeBayesFactorOneZero(rho_samples$rhoSamples,
+																	whichTest = "Spearman",
+																	priorParameter = 1)
+bf01 <- 1 / bf10
+
+# Healthy controls 
+data_corr_kld_hc <- subset(data_corr_kld, group == "HC")
+
+corr_kld_hc <- rcorr(data_corr_kld_hc$norm_kl_i, 
+										 data_corr_kld_hc$norm_kl_p, 
+										 type = "spearman")
+
+corr_kld_hc_ci <- psych::corr.test(data_corr_kld_hc$norm_kl_i,
+																	 data_corr_kld_hc$norm_kl_p,
+																	 method = "spearman")
+
+set.seed(1213)
+rho_samples <- spearmanGibbsSampler(xVals = data_corr_kld_hc$norm_kl_i,
+																		yVals = data_corr_kld_hc$norm_kl_p)
+
+bf10 <- computeBayesFactorOneZero(rho_samples$rhoSamples,
+																	whichTest = "Spearman",
+																	priorParameter = 1)
+bf01 <- 1 / bf10
+
+# mPFC lesions 
+data_corr_kld_mpfc <- subset(data_corr_kld, group == "mPFC")
+
+corr_kld_mpfc <- rcorr(data_corr_kld_mpfc$norm_kl_i, 
+											 data_corr_kld_mpfc$norm_kl_p,
+											 type = "spearman")
+
+corr_kld_mpfc_ci <- psych::corr.test(data_corr_kld_mpfc$norm_kl_i,
+																		 data_corr_kld_mpfc$norm_kl_p,
+																		 method = "spearman")
+
+set.seed(1213)
+rho_samples <- spearmanGibbsSampler(xVals = data_corr_kld_mpfc$norm_kl_i,
+																		yVals = data_corr_kld_mpfc$norm_kl_p)
+
+bf10 <- computeBayesFactorOneZero(rho_samples$rhoSamples,
+																	whichTest = "Spearman",
+																	priorParameter = 1)
+bf01 <- 1 / bf10
+
+# Lesion controls 
+data_corr_kld_lc <- subset(data_corr_kld, group == "LC")
+
+corr_kld_lc <- rcorr(data_corr_kld_lc$norm_kl_i, 
+										 data_corr_kld_lc$norm_kl_p,
+										 type = "spearman")
+
+corr_kld_lc_ci <- psych::corr.test(data_corr_kld_lc$norm_kl_i,
+																	 data_corr_kld_lc$norm_kl_p,
+																	 method = "spearman")
+
+set.seed(1213)
+rho_samples <- spearmanGibbsSampler(xVals = data_corr_kld_lc$norm_kl_i,
+																		yVals = data_corr_kld_lc$norm_kl_p)
+
+bf10 <- computeBayesFactorOneZero(rho_samples$rhoSamples,
+																	whichTest = "Spearman",
+																	priorParameter = 1)
+bf01 <- 1 / bf10
+
+# Adjust p-values for multiple comparisons 
+corr_kld_p <- c(corr_kld$P[1, 2],
+								corr_kld_hc$P[1, 2],
+								corr_kld_mpfc$P[1, 2],
+								corr_kld_lc$P[1, 2])
+
+corr_kld_p_adjusted <- p.adjust(corr_kld_p, method = "fdr")
+```
 
 # 7. Lesion analysis 
-
-## Lesion size (something)
