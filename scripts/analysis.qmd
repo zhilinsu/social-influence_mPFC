@@ -1605,11 +1605,11 @@ post_kld_3a <- contrast(emmeans(lmer_model_3a, ~ group | other_pref),
 print(post_kld_3a)
 
 ## Bayes factor 
-data_kld_bayes <- data_kld %>%
-	mutate(id = as.factor(id)) %>% 
+data_kld_bayes <- data_kld |>
+	mutate(id = as.factor(id)) |> 
 	filter(!is.na(norm_kl))
 
-data_kld_bayes_patient <- data_kld_bayes %>%
+data_kld_bayes_patient <- data_kld_bayes |>
 	filter(other_pref == "patient")
 
 # BF_01 for differences between mPFC and HC (patient)
@@ -2210,8 +2210,8 @@ corr_similar_kld_pvalues_adjusted <- p.adjust(corr_similar_kld_pvalues, method =
 #| warning: false 
 
 # Preparation 
-data_lesion <- data_all %>%
-	dplyr::select(id, group, self_1_km, self_1_ku, norm_kl_i, norm_kl_p) %>% 
+data_lesion <- data_all |>
+	dplyr::select(id, group, self_1_km, self_1_ku, norm_kl_i, norm_kl_p) |> 
 	mutate(norm_kl_diff = norm_kl_i - norm_kl_p, 
 				 group_num = case_when(
 				 group == "HC" ~ 1,
@@ -2265,6 +2265,7 @@ corr_size_kld_diff_mpfc <- rcorr(lesion_size_mpfc$lesion,
 #| label: corr_lesion_size_self_1_ku 
 #| echo: false 
 #| warning: false 
+#| output: false 
 
 corr_size_ku_lc <- rcorr(lesion_size_lc$lesion,
 												 lesion_size_lc$self_1_ku,
@@ -2289,6 +2290,7 @@ bf01 <- 1 / bf10
 #| label: corr_kld_ip 
 #| echo: false 
 #| warning: false
+#| output: false
 
 # Preparation 
 data_kld_i <- data_kld |> 
@@ -2392,3 +2394,328 @@ corr_kld_p_adjusted <- p.adjust(corr_kld_p, method = "fdr")
 ```
 
 # 7. Lesion analysis 
+## 7.1 Plot - susceptibility to social influence (mPFC lesion patients only) (**Figure 5b**)
+
+```{r}
+#| label: fig-lesion-kld-mpfc
+#| echo: false 
+#| warning: false 
+#| fig-cap: "Damage to dmPFC (area 9) enhanced susceptibility to impulsive social influence." 
+#| fig-width: 2.4
+#| fig-height: 4
+
+# Preparation 
+lesion_kld_diff_mpfc <- read.csv("data/norm_kl_diff_pos_tfce_mpfc.csv",
+																 header = TRUE) |>
+	as_tibble() |>
+	mutate(id = as.double(id), 
+				 norm_kl_diff_pos_voxels = as.double(norm_kl_diff_pos_voxels), 
+				 norm_kl_diff_pos_volume = as.double(norm_kl_diff_pos_volume))
+
+lesion_kld_diff_mpfc <- lesion_kld_diff_mpfc |>
+	left_join(data_all, by = "id") |> 
+	dplyr::select(id, norm_kl_diff_pos_voxels, norm_kl_diff_pos_volume, group,
+								norm_kl_i, norm_kl_p) |> 
+	mutate(is_lesion = if_else(norm_kl_diff_pos_volume != 0, 1, 0)) |> 
+	mutate(is_lesion = factor(is_lesion, 
+														levels = c(0, 1), 
+														labels = c("no_lesion", "lesion"))) |> 
+	mutate(norm_kl_diff = norm_kl_i - norm_kl_p)
+
+rank_kld_diff_mpfc <- rank(lesion_kld_diff_mpfc$norm_kl_diff)
+
+lesion_kld_diff_mpfc <- lesion_kld_diff_mpfc |>
+	mutate(rank_norm_kl_diff = rank_kld_diff_mpfc)
+
+# Preparation for plotting 
+vars <- "rank_norm_kl_diff"
+
+plt_data <- lesion_kld_diff_mpfc |>
+	group_by(is_lesion) |> 
+	filter(!is.na(get(vars))) |> 
+	summarise(n = n(), 
+						mean = mean(get(vars)), 
+						sd = sd(get(vars)), 
+						se = sd / sqrt(n)) |> 
+	ungroup()
+
+# ggplot for manuscript 
+set.seed(1213)
+plt_lesion_kld_diff_mpfc <- ggplot(plt_data, aes(x = is_lesion)) + 
+	geom_errorbar(aes(ymin = mean - se,
+										ymax = mean + se), 
+								position = position_dodge(0),
+								colour = "black", width = 0, size = 0.7) +
+	geom_jitter(aes(x = is_lesion, y = mean), 
+							position = position_dodge(0), 
+							fill = "black", colour = "black", 
+							shape = 21, stroke = 0, size = 3.5) +
+	geom_jitter(data = lesion_kld_diff_mpfc, 
+							aes(x = is_lesion, y = get(vars), colour = is_lesion), 
+							alpha = 0.5, 
+							position = position_jitterdodge(dodge.width = 0, 
+																							jitter.height = 0, 
+																							jitter.width = 0.3), 
+							size = 2, shape = 19, stroke = 0) + 
+	scale_x_discrete(labels = c("No lesion", "Lesion")) + 
+	scale_colour_manual(values = c("#bc5090", "#bc5090")) +
+	labs(x = "dmPFC", y = "Impulsive vs patient signed <i>D<sub>KL</sub></i> (rank)") + 
+	theme_classic() + 
+	theme(text = element_text(family = "Arial"),
+				axis.text.x = element_text(size = ax_text),
+				axis.text.y = element_text(size = ax_text), 
+				axis.title.x = element_text(size = ax_title), 
+				axis.title.y = element_markdown(size = ax_text, lineheight = 1.2), 
+				legend.position = "none")  
+
+print(plt_lesion_kld_diff_mpfc)
+
+if (is_save == 1) {
+	ggsave("data/plots/lesion_kld_diff_mpfc.png", plt_lesion_kld_diff_mpfc,
+				 height = plot_h, width = plot_h * 0.6, dpi = resolution)
+}
+```
+
+## 7.2 Plot - self baseline temporal impulsivity (mPFC lesion patients only) (**Figure 6b**) 
+
+```{r}
+#| label: fig-lesion-km-mpfc
+#| echo: false 
+#| warning: false 
+#| fig-cap: "Damage to vmPFC and ventral striatum increases temporal impulsivity." 
+#| fig-width: 2.4
+#| fig-height: 4
+
+# Preparation 
+lesion_self1_km_mpfc <- read.csv("data/self_1_km_pos_tfce_mpfc.csv",
+																 header = TRUE) |>
+	as_tibble() |> 
+	mutate(id = as.double(id), 
+				 self_1_km_pos_voxels = as.double(self_1_km_pos_voxels), 
+				 self_1_km_pos_volume = as.double(self_1_km_pos_volume))
+
+lesion_self1_km_mpfc <- lesion_self1_km_mpfc |> 
+	left_join(data_all, by = "id") |> 
+	dplyr::select(id, self_1_km_pos_voxels, self_1_km_pos_volume, group,
+								self_1_km) |> 
+	mutate(is_lesion = if_else(self_1_km_pos_volume != 0, 1, 0)) |> 
+	mutate(is_lesion = factor(is_lesion, 
+														levels = c(0, 1), 
+														labels = c("no_lesion", "lesion")))
+
+rank_self1_km_mpfc <- rank(lesion_self1_km_mpfc$self_1_km)
+
+lesion_self1_km_mpfc <- lesion_self1_km_mpfc |> 
+	mutate(rank_self_1_km = rank_self1_km_mpfc)
+
+# Preparation for plotting 
+vars <- "rank_self_1_km"
+
+plt_data <- lesion_self1_km_mpfc |> 
+	group_by(is_lesion) |> 
+	filter(!is.na(get(vars))) |> 
+	summarise(n = n(), 
+						mean = mean(get(vars)), 
+						sd = sd(get(vars)), 
+						se = sd / sqrt(n)) |> 
+	ungroup()
+
+# ggplot for manuscript
+set.seed(1213)
+plt_lesion_self1_km_mpfc <- ggplot(plt_data, aes(x = is_lesion)) + 
+	geom_errorbar(aes(ymin = mean - se, 
+										ymax = mean + se), 
+								position = position_dodge(0), 
+								colour = "black", width = 0, size = 0.7) +
+	geom_jitter(aes(x = is_lesion, y = mean), 
+							position = position_dodge(0), 
+							fill = "black", colour = "black", 
+							shape = 21, stroke = 0, size = 3.5) +
+	geom_jitter(data = lesion_self1_km_mpfc, 
+							aes(x = is_lesion, y = get(vars), colour = is_lesion), 
+							alpha = 0.5, 
+							position = position_jitterdodge(dodge.width = 0, 
+																							jitter.height = 0, 
+																							jitter.width = 0.3), 
+							size = 2, shape = 19, stroke = 0) + 
+	scale_x_discrete(labels = c("No lesion", "Lesion")) + 
+	scale_colour_manual(values = c("#4ac14e", "#4ac14e")) +
+	labs(x = "vmPFC / VS", y = "Self baseline km (rank)") + 
+	theme_classic() + 
+	theme(text = element_text(family = "Arial"),
+				axis.text.x = element_text(size = ax_text),
+				axis.text.y = element_text(size = ax_text), 
+				axis.title.x = element_text(size = ax_title), 
+				axis.title.y = element_markdown(size = ax_text, lineheight = 1.2), 
+				legend.position = "none") 
+
+print(plt_lesion_self1_km_mpfc)
+
+if (is_save == 1) {
+	ggsave("data/plots/lesion_self_1_km_mpfc.png", plt_lesion_self1_km_mpfc,
+				 height = plot_h, width = plot_h * 0.6, dpi = resolution)
+}
+```
+
+## 7.3 Plot - susceptibility to social influence (all lesion patients) (**Figure S3b**)
+
+```{r}
+#| label: fig-lesion-kld-all
+#| echo: false 
+#| warning: false 
+#| fig-cap: "Damage to dmPFC (area 9) enhanced susceptibility to impulsive social influence." 
+#| fig-width: 2.4
+#| fig-height: 4
+
+# Preparation 
+lesion_kld_diff_all <- read.csv("data/norm_kl_diff_pos_tfce_all.csv",
+																header = TRUE) |> 
+	as_tibble() |>
+	mutate(id = as.double(id), 
+				 norm_kl_diff_pos_voxels = as.double(norm_kl_diff_pos_voxels), 
+				 norm_kl_diff_pos_volume = as.double(norm_kl_diff_pos_volume))
+
+lesion_kld_diff_all <- lesion_kld_diff_all |> 
+	left_join(data_all, by = "id") |> 
+	dplyr::select(id, norm_kl_diff_pos_voxels, norm_kl_diff_pos_volume, group,
+								norm_kl_i, norm_kl_p) |> 
+	mutate(is_lesion = if_else(norm_kl_diff_pos_volume != 0, 1, 0)) |> 
+	mutate(is_lesion = factor(is_lesion, 
+														levels = c(0, 1), 
+														labels = c("no_lesion", "lesion"))) |> 
+	mutate(norm_kl_diff = norm_kl_i - norm_kl_p)
+
+rank_kld_diff_all <- rank(lesion_kld_diff_all$norm_kl_diff)
+
+lesion_kld_diff_all <- lesion_kld_diff_all |>
+	mutate(rank_norm_kl_diff = rank_kld_diff_all)
+
+# Preparation for plotting 
+vars <- "rank_norm_kl_diff"
+
+plt_data <- lesion_kld_diff_all |>
+	group_by(is_lesion) |> 
+	filter(!is.na(get(vars))) |> 
+	summarise(n = n(), 
+						mean = mean(get(vars)), 
+						sd = sd(get(vars)), 
+						se = sd / sqrt(n)) |> 
+	ungroup()
+
+# ggplot for manuscript 
+set.seed(1213)
+plt_lesion_kld_diff_all <- ggplot(plt_data, aes(x = is_lesion)) + 
+	geom_errorbar(aes(ymin = mean - se,
+										ymax = mean + se), 
+								position = position_dodge(0),
+								colour = "black", width = 0, size = 0.7) +
+	geom_jitter(aes(x = is_lesion, y = mean), 
+							position = position_dodge(0), 
+							fill = "black", colour = "black", 
+							shape = 21, stroke = 0, size = 3.5) +
+	geom_jitter(data = lesion_kld_diff_all, 
+							aes(x = is_lesion, y = get(vars), colour = is_lesion), 
+							alpha = 0.5, 
+							position = position_jitterdodge(dodge.width = 0, 
+																							jitter.height = 0, 
+																							jitter.width = 0.3), 
+							size = 2, shape = 19, stroke = 0) + 
+	scale_x_discrete(labels = c("No lesion", "Lesion")) + 
+	scale_colour_manual(values = c("#bc5090", "#bc5090")) +
+	labs(x = "dmPFC", y = "Impulsive vs patient signed <i>D<sub>KL</sub></i> (rank)") + 
+	theme_classic() + 
+	theme(text = element_text(family = "Arial"),
+				axis.text.x = element_text(size = ax_text),
+				axis.text.y = element_text(size = ax_text), 
+				axis.title.x = element_text(size = ax_title), 
+				axis.title.y = element_markdown(size = ax_text, lineheight = 1.2), 
+				legend.position = "none")  
+
+print(plt_lesion_kld_diff_all)
+
+if (is_save == 1) {
+	ggsave("data/plots/lesion_kld_diff_all.png", plt_lesion_kld_diff_all,
+				 height = plot_h, width = plot_h * 0.6, dpi = resolution)
+}
+```
+
+## 7.4 Plot - self baseline temporal impulsivity (all lesion patients) (**Figure S4b**)
+
+```{r}
+#| label: fig-lesion-km-all
+#| echo: false 
+#| warning: false 
+#| fig-cap: "Damage to vmPFC and ventral striatum increases temporal impulsivity," 
+#| fig-width: 2.4
+#| fig-height: 4
+
+# Preparation 
+lesion_self1_km_all <- read.csv("data/self_1_km_pos_tfce_all.csv",
+																header = TRUE) |>
+	as_tibble() |> 
+	mutate(id = as.double(id), 
+				 self_1_km_pos_voxels = as.double(self_1_km_pos_voxels), 
+				 self_1_km_pos_volume = as.double(self_1_km_pos_volume))
+
+lesion_self1_km_all <- lesion_self1_km_all |> 
+	left_join(data_all, by = "id") |> 
+	dplyr::select(id, self_1_km_pos_voxels, self_1_km_pos_volume, group,
+								self_1_km) |> 
+	mutate(is_lesion = if_else(self_1_km_pos_volume != 0, 1, 0)) |> 
+	mutate(is_lesion = factor(is_lesion, 
+														levels = c(0, 1), 
+														labels = c("no_lesion", "lesion")))
+
+rank_self1_km_all <- rank(lesion_self1_km_all$self_1_km)
+
+lesion_self1_km_all <- lesion_self1_km_all |> 
+	mutate(rank_self_1_km = rank_self1_km_all)
+
+# Preparation for plotting 
+vars <- "rank_self_1_km"
+
+plt_data <- lesion_self1_km_all |> 
+	group_by(is_lesion) |> 
+	filter(!is.na(get(vars))) |> 
+	summarise(n = n(), 
+						mean = mean(get(vars)), 
+						sd = sd(get(vars)), 
+						se = sd / sqrt(n)) |> 
+	ungroup()
+
+# ggplot for manuscript
+set.seed(1213)
+plt_lesion_self1_km_all <- ggplot(plt_data, aes(x = is_lesion)) + 
+	geom_errorbar(aes(ymin = mean - se, 
+										ymax = mean + se), 
+								position = position_dodge(0), 
+								colour = "black", width = 0, size = 0.7) +
+	geom_jitter(aes(x = is_lesion, y = mean), 
+							position = position_dodge(0), 
+							fill = "black", colour = "black", 
+							shape = 21, stroke = 0, size = 3.5) +
+	geom_jitter(data = lesion_self1_km_all, 
+							aes(x = is_lesion, y = get(vars), colour = is_lesion), 
+							alpha = 0.5, 
+							position = position_jitterdodge(dodge.width = 0, 
+																							jitter.height = 0, 
+																							jitter.width = 0.3), 
+							size = 2, shape = 19, stroke = 0) + 
+	scale_x_discrete(labels = c("No lesion", "Lesion")) + 
+	scale_colour_manual(values = c("#4ac14e", "#4ac14e")) +
+	labs(x = "vmPFC / VS", y = "Self baseline km (rank)") + 
+	theme_classic() + 
+	theme(text = element_text(family = "Arial"),
+				axis.text.x = element_text(size = ax_text),
+				axis.text.y = element_text(size = ax_text), 
+				axis.title.x = element_text(size = ax_title), 
+				axis.title.y = element_markdown(size = ax_text, lineheight = 1.2), 
+				legend.position = "none") 
+
+print(plt_lesion_self1_km_all)
+
+if (is_save == 1) {
+	ggsave("data/plots/lesion_self_1_km_all.png", plt_lesion_self1_km_all,
+				 height = plot_h, width = plot_h * 0.6, dpi = resolution)
+}
+```
