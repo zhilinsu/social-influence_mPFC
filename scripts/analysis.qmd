@@ -1730,7 +1730,7 @@ kld_lmer_3d_table <- kld_lmer_3d_table_full |>
 print(kld_lmer_3d_table)
 ```
 
-### LMM3e (**Table SX**) control for self baseline preference uncertainty
+### LMM3e (**Table S6**) control for self baseline preference uncertainty
 
 ```r
 lmer_model_3e <- lmer(norm_kl ~ 1 + group * other_pref * centred_self_1_km + centred_self_1_ku + (1|id),
@@ -1878,7 +1878,7 @@ if (is_save == 1) {
 ```
 
 # 6. Correlations
-## 6.1. Learning performances vs Signed KL divergence (**Table S5**)
+## 6.1. Learning performances vs Signed KL divergence (**Table S7**)
 
 ```{r}
 #| label: corr_accuracy_kld 
@@ -2041,7 +2041,7 @@ corr_acc_kld_pvalues <- c(corr_acc_kld_hc_i$P[1, 2],
 corr_acc_kld_pvalues_adjusted <- p.adjust(corr_acc_kld_pvalues, method = "fdr")
 ```
 
-## 6.2. Perceived similarity vs Signed KL divergence (**Table S6**)
+## 6.2. Perceived similarity vs Signed KL divergence (**Table S8**)
 
 ```{r}
 #| label: corr_similar_kld 
@@ -2288,7 +2288,7 @@ bf10 <- computeBayesFactorOneZero(rho_samples$rhoSamples,
 bf01 <- 1 / bf10
 ```
 
-## 6.6. Signed KL divergence (impulsive vs patient) (**Table SX**)
+## 6.6. Signed KL divergence (impulsive vs patient) (**Table S5**)
 
 ```{r}
 #| label: corr_kld_ip 
