@@ -1,6 +1,6 @@
 Code and data for the delegated inter-temporal choice task, accompanying the manuscript:
 
-Zhilin Su\*, Mona M. Garvert, Lei Zhang, Todd A. Vogel, Jo Cutler, Masud Husain, Sanjay Manohar, & Patricia L. Lockwood\*. (2025). **Dorsomedial and ventromedial prefrontal cortex lesions differentially impact social influence and temporal discounting**.
+Zhilin Su\*, Mona M. Garvert, Lei Zhang, Todd A. Vogel, Jo Cutler, Masud Husain, Sanjay Manohar, & Patricia L. Lockwood\*. (2025). **Dorsomedial and ventromedial prefrontal cortex lesions differentially impact social influence and temporal discounting**. _PLOS Biology_. https://doi.org/10.1371/journal.pbio.3003079 
 
 This repository contains:
 
